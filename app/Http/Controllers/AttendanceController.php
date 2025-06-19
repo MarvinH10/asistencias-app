@@ -17,7 +17,6 @@ class AttendanceController extends Controller
     {
         $validated = $request->validate([
             'qr_code' => 'required|string',
-            'type' => 'required|in:Entrada,Salida',
             'latitude' => 'nullable|string',
             'longitude' => 'nullable|string',
         ]);
@@ -69,11 +68,18 @@ class AttendanceController extends Controller
         $locationWarning = $this->validateLocation($validated, $user);
         
         try {
+            $lastRecord = AttendanceRecord::where('user_id', $user->id)
+                ->whereDate('created_at', now()->toDateString())
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $status = $lastRecord ? ($lastRecord->status === 'Entrada' ? 'Salida' : 'Entrada') : 'Entrada';
+
             $attendanceRecord = AttendanceRecord::create([
                 'user_id' => $user->id,
                 'attendance_method_id' => 1,
                 'timestamp' => now(),
-                'status' => $validated['type'],
+                'status' => $status,
                 'ip_address' => $request->ip(),
                 'qr_token' => $validated['qr_code'],
                 'latitude' => $validated['latitude'] ?? null,
@@ -90,7 +96,7 @@ class AttendanceController extends Controller
         
         $response = [
             'success' => true,
-            'message' => "¡Asistencia registrada exitosamente como {$validated['type']}!",
+            'message' => "¡Asistencia registrada exitosamente como {$status}!",
             'user_name' => $user->name,
             'timestamp' => $attendanceRecord->timestamp
         ];

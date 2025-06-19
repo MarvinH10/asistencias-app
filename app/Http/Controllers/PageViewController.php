@@ -45,18 +45,18 @@ class PageViewController extends Controller
     
         $isUpdate = str_contains($request->route()->getName(), '.update');
         $id = $request->route('id');
-    
+
         foreach ($this->getFieldsSchema($key) as $field) {
             $rule = [];
     
             if (! $field['required']) {
                 $rule[] = 'nullable';
             }
-            
+
             if ($field['required']) {
                 $rule[] = 'required';
             }
-    
+
             if ($field['type'] === 'text') {
                 $rule[] = 'string';
             } elseif ($field['type'] === 'number') {
@@ -77,10 +77,10 @@ class PageViewController extends Controller
                 }
                 $messages['email.unique'] = 'El correo electrónico ya está en uso.';
             }
-    
+
             $rules[$field['name']] = $rule;
         }
-    
+
         return $request->validate($rules, $messages);
     }
 
@@ -195,8 +195,8 @@ class PageViewController extends Controller
                 $data['qrCode'] = $model::first();
             } else {
                 $data[$key] = !empty($relations)
-                    ? $model::with($relations)->get()
-                    : $model::all();
+                ? $model::with($relations)->get()
+                : $model::all();
             }
         }
 
