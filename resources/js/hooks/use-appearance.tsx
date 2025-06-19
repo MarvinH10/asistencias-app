@@ -35,7 +35,9 @@ const mediaQuery = () => {
 
 const handleSystemThemeChange = () => {
     const currentAppearance = localStorage.getItem('appearance') as Appearance;
-    applyTheme(currentAppearance || 'system');
+    if (currentAppearance === 'system') {
+        applyTheme('system');
+    }
 };
 
 export function initializeTheme() {
@@ -43,20 +45,24 @@ export function initializeTheme() {
 
     applyTheme(savedAppearance);
 
-    // Add the event listener for system theme changes...
-    mediaQuery()?.addEventListener('change', handleSystemThemeChange);
+    // Add the event listener for system theme changes
+    const mediaQueryInstance = mediaQuery();
+    if (mediaQueryInstance) {
+        mediaQueryInstance.addEventListener('change', handleSystemThemeChange);
+    }
 }
 
 export function useAppearance() {
     const [appearance, setAppearance] = useState<Appearance>('system');
+    const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(prefersDark() ? 'dark' : 'light');
 
     const updateAppearance = useCallback((mode: Appearance) => {
         setAppearance(mode);
 
-        // Store in localStorage for client-side persistence...
+        // Store in localStorage for client-side persistence
         localStorage.setItem('appearance', mode);
 
-        // Store in cookie for SSR...
+        // Store in cookie for SSR
         setCookie('appearance', mode);
 
         applyTheme(mode);
@@ -66,8 +72,28 @@ export function useAppearance() {
         const savedAppearance = localStorage.getItem('appearance') as Appearance | null;
         updateAppearance(savedAppearance || 'system');
 
-        return () => mediaQuery()?.removeEventListener('change', handleSystemThemeChange);
-    }, [updateAppearance]);
+        // Listen for system theme changes
+        const mediaQueryInstance = mediaQuery();
+        if (mediaQueryInstance) {
+            const handleChange = (e: MediaQueryListEvent) => {
+                setSystemTheme(e.matches ? 'dark' : 'light');
+                if (appearance === 'system') {
+                    applyTheme('system');
+                }
+            };
 
-    return { appearance, updateAppearance } as const;
+            mediaQueryInstance.addEventListener('change', handleChange);
+            return () => mediaQueryInstance.removeEventListener('change', handleChange);
+        }
+    }, [updateAppearance, appearance]);
+
+    // Get the effective theme (system theme when appearance is 'system')
+    const effectiveTheme = appearance === 'system' ? systemTheme : appearance;
+
+    return { 
+        appearance, 
+        updateAppearance, 
+        systemTheme,
+        effectiveTheme 
+    } as const;
 }

@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\Department;
 use App\Models\Position;
 use App\Models\User;
+use App\Models\QrCode;
 use App\Models\AttendanceMethod;
 use App\Models\AttendanceRecord;
 use App\Models\Holiday;
@@ -21,6 +22,7 @@ class PageViewController extends Controller
     protected function traducirClave(string $key): string
     {
         $traducciones = [
+            'Qr-code' => 'Código QR',
             'Company' => 'Compañía',
             'Department' => 'Departamento',
             'Position' => 'Cargo',
@@ -85,6 +87,9 @@ class PageViewController extends Controller
     protected function getFieldsSchema(string $key): array
     {
         $schemas = [
+            'qr-codes' => [
+                ['name' => 'qr_code', 'label' => 'Código QR', 'type' => 'text', 'required' => true],
+            ],
             'companies' => [
                 ['name' => 'razon_social', 'label' => 'Razón Social', 'type' => 'text', 'required' => true],
                 ['name' => 'ruc', 'label' => 'RUC', 'type' => 'text', 'required' => true],
@@ -108,6 +113,7 @@ class PageViewController extends Controller
                 ['name' => 'name', 'label' => 'Nombre', 'type' => 'text', 'required' => true],
                 ['name' => 'email', 'label' => 'Email', 'type' => 'text', 'required' => true],
                 ['name' => 'password', 'label' => 'Contraseña', 'type' => 'text', 'required' => false],
+                ['name' => 'qr_code_id', 'label' => 'Código QR', 'type' => 'select', 'required' => true],
                 ['name' => 'company_id', 'label' => 'Compañía', 'type' => 'select', 'required' => true],
                 ['name' => 'department_id', 'label' => 'Departamento', 'type' => 'select', 'required' => true],
                 ['name' => 'position_id', 'label' => 'Cargo', 'type' => 'select', 'required' => true],
@@ -129,7 +135,10 @@ class PageViewController extends Controller
                 ['name' => 'qr_token', 'label' => 'Token QR', 'type' => 'text', 'required' => false],
                 ['name' => 'latitude', 'label' => 'Latitud', 'type' => 'number', 'required' => false],
                 ['name' => 'longitude', 'label' => 'Longitud', 'type' => 'number', 'required' => false],
-                ['name' => 'status', 'label' => 'Tipo de registro', 'type' => 'text', 'required' => true],
+                ['name' => 'status', 'label' => 'Tipo de registro', 'type' => 'select', 'required' => true, 'options' => [
+                    ['value' => 'entrada', 'label' => 'Entrada'],
+                    ['value' => 'salida', 'label' => 'Salida']
+                ]],
                 ['name' => 'notas', 'label' => 'Notas', 'type' => 'text', 'required' => false],
                 ['name' => 'estado', 'label' => 'Activo', 'type' => 'checkbox', 'required' => false],
             ],
@@ -153,6 +162,7 @@ class PageViewController extends Controller
     }
 
     protected $modelMap = [
+        'qr-codes' => QrCode::class,
         'companies' => Company::class,
         'departments' => Department::class,
         'positions' => Position::class,
@@ -180,9 +190,14 @@ class PageViewController extends Controller
             $model = $this->modelMap[$page];
             $relations = $this->modelRelations[$page] ?? [];
             $key = Str::camel($page);
-            $data[$key] = !empty($relations)
-                ? $model::with($relations)->get()
-                : $model::all();
+
+            if ($page === 'qr-codes') {
+                $data['qrCode'] = $model::first();
+            } else {
+                $data[$key] = !empty($relations)
+                    ? $model::with($relations)->get()
+                    : $model::all();
+            }
         }
 
         return Inertia::render($page, $data);
@@ -205,6 +220,7 @@ class PageViewController extends Controller
             'attendanceMethods' => AttendanceMethod::select('id', 'nombre')->get(),
             'users' => User::select('id', 'name')->get(),
             'shifts' => Shift::select('id', 'nombre')->get(),
+            'qrCodes' => QrCode::select('id', 'qr_code')->get(),
         ]);
     }
 
@@ -248,6 +264,7 @@ class PageViewController extends Controller
             'attendanceMethods' => AttendanceMethod::select('id', 'nombre')->get(),
             'users' => User::select('id', 'name')->get(),
             'shifts' => Shift::select('id', 'nombre')->get(),
+            'qrCodes' => QrCode::select('id', 'qr_code')->get(),
         ]);
     }
 
@@ -354,6 +371,7 @@ class PageViewController extends Controller
                 $clone->name = $record->name . ' (Copia)';
                 $clone->email = $record->email . ' (Copia)';
                 $clone->password = $record->password;
+                $clone->qr_code_id = $record->qr_code_id;
                 $clone->company_id = $record->company_id;
                 $clone->department_id = $record->department_id;
                 $clone->position_id = $record->position_id;

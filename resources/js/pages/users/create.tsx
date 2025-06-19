@@ -9,6 +9,7 @@ interface Props extends PageProps {
     urlView: string;
     breadcrumb?: string;
     fields: FormField[];
+    qrCodes: { id: number; qr_code: string }[];
     companies: { id: number; razon_social: string }[];
     departments: { id: number; nombre: string }[];
     positions: { id: number; nombre: string }[];
@@ -16,7 +17,7 @@ interface Props extends PageProps {
 
 export default function UsersCreate() {
     const { props } = usePage<Props>();
-    const { title, urlView, breadcrumb, fields, companies, departments, positions } = props;
+    const { title, urlView, breadcrumb, fields, companies, departments, positions, qrCodes } = props;
 
     return (
         <AppLayout>
@@ -29,7 +30,14 @@ export default function UsersCreate() {
                     initialData={null}
                     isEdit={false}
                     fields={[
-                        ...fields.filter(f => f.name !== 'company_id' && f.name !== 'department_id' && f.name !== 'position_id'),
+                        ...fields.filter(f => f.name !== 'company_id' && f.name !== 'department_id' && f.name !== 'position_id' && f.name !== 'qr_code_id'),
+                        {
+                            name: 'qr_code_id',
+                            label: 'Código QR',
+                            type: 'select',
+                            required: true,
+                            options: (qrCodes ?? []).map(q => ({ value: String(q.id), label: q.qr_code })),
+                        },
                         {
                             name: 'company_id',
                             label: 'Compañía',

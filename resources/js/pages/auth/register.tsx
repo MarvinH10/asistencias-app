@@ -32,12 +32,12 @@ export default function Register() {
     };
 
     return (
-        <AuthLayout title="Create an account" description="Enter your details below to create your account">
-            <Head title="Register" />
+        <AuthLayout title="Crea una cuenta" description="Ingresa tus datos para crear tu cuenta">
+            <Head title="Registrarse" />
             <form className="flex flex-col gap-6" onSubmit={submit}>
                 <div className="grid gap-6">
                     <div className="grid gap-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">Nombre</Label>
                         <Input
                             id="name"
                             type="text"
@@ -48,13 +48,13 @@ export default function Register() {
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
                             disabled={processing}
-                            placeholder="Full name"
+                            placeholder="Nombre completo"
                         />
                         <InputError message={errors.name} className="mt-2" />
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="email">Email address</Label>
+                        <Label htmlFor="email">Correo electrónico</Label>
                         <Input
                             id="email"
                             type="email"
@@ -64,13 +64,13 @@ export default function Register() {
                             value={data.email}
                             onChange={(e) => setData('email', e.target.value)}
                             disabled={processing}
-                            placeholder="email@example.com"
+                            placeholder="correo@ejemplo.com"
                         />
                         <InputError message={errors.email} />
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
+                        <Label htmlFor="password">Contraseña</Label>
                         <Input
                             id="password"
                             type="password"
@@ -80,13 +80,13 @@ export default function Register() {
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
                             disabled={processing}
-                            placeholder="Password"
+                            placeholder="Contraseña"
                         />
                         <InputError message={errors.password} />
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="password_confirmation">Confirm password</Label>
+                        <Label htmlFor="password_confirmation">Confirmar contraseña</Label>
                         <Input
                             id="password_confirmation"
                             type="password"
@@ -96,21 +96,21 @@ export default function Register() {
                             value={data.password_confirmation}
                             onChange={(e) => setData('password_confirmation', e.target.value)}
                             disabled={processing}
-                            placeholder="Confirm password"
+                            placeholder="Confirma tu contraseña"
                         />
                         <InputError message={errors.password_confirmation} />
                     </div>
 
                     <Button type="submit" className="mt-2 w-full" tabIndex={5} disabled={processing}>
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        Create account
+                        Crear cuenta
                     </Button>
                 </div>
 
                 <div className="text-center text-sm text-muted-foreground">
-                    Already have an account?{' '}
+                    ¿Ya tienes una cuenta?{' '}
                     <TextLink href={route('login')} tabIndex={6}>
-                        Log in
+                        Inicia sesión
                     </TextLink>
                 </div>
             </form>

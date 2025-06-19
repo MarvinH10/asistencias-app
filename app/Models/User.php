@@ -27,6 +27,7 @@ class User extends Authenticatable
         'fecha_ingreso',
         'fecha_retiro',
         'estado',
+        'qr_code_id',
     ];
 
     /**
@@ -70,5 +71,10 @@ class User extends Authenticatable
     public function attendanceRecords()
     {
         return $this->hasMany(AttendanceRecord::class);
+    }
+
+    public function qrCode()
+    {
+        return $this->belongsTo(QrCode::class);
     }
 }

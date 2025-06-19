@@ -2,12 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageViewController;
+use App\Http\Controllers\Pages\QrCodeController;
 
 /**
  * Definición de páginas disponibles en el sistema
  */
 $pages = [
     'dashboard',
+    'qr-codes',
     'companies',
     'departments',
     'positions',
@@ -51,4 +53,9 @@ Route::middleware(['auth', 'verified'])->group(function () use ($pages) {
         Route::get("$page/export", [PageViewController::class, 'export'])
             ->name("$page.export");
     }
+
+    
+    Route::get('qr-codes', [QrCodeController::class, 'index'])->name('qr-codes');
+    Route::post('qr-codes', [QrCodeController::class, 'store'])->name('qr-codes.store');
 });
+

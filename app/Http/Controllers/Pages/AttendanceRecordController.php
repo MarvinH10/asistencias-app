@@ -44,7 +44,7 @@ class AttendanceRecordController extends Controller
             'qr_token' => 'nullable|string|max:255',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
-            'status' => 'required|string|max:255',
+            'status' => 'required|in:Entrada,Salida',
             'notas' => 'nullable|string|max:255',
             'estado' => 'boolean',
         ]);
@@ -87,7 +87,7 @@ class AttendanceRecordController extends Controller
             'qr_token' => 'nullable|string|max:255',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
-            'status' => 'required|string|max:255',
+            'status' => 'required|in:Entrada,Salida',
             'notas' => 'nullable|string|max:255',
             'estado' => 'boolean',
         ]);

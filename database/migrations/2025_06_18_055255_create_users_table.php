@@ -16,6 +16,10 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->foreignId('qr_code_id')
+                ->nullable()
+                ->constrained('qr_codes')
+                ->onDelete('set null');
             $table->foreignId('company_id')
                 ->constrained('companies')
                 ->onDelete('cascade');

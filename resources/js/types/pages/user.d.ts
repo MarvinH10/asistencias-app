@@ -3,6 +3,7 @@ export interface User {
     name: string;
     email: string;
     password: string;
+    qr_code_id: number;
     company_id: number;
     department_id: number;
     position_id: number;
@@ -11,6 +12,7 @@ export interface User {
     estado: boolean;
     created_at: string;
     updated_at: string;
+    qrCode?: { qr_code: string } | null;
     department?: { nombre: string } | null;
     company?: { razon_social: string } | null;
     position?: { nombre: string } | null;

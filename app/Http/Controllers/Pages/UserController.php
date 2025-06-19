@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Department;
 use App\Models\Company;
 use App\Models\Position;
+use App\Models\QrCode;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Controllers\Controller;
@@ -17,7 +18,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::with(['company', 'department', 'position'])->get();
+        $users = User::with(['company', 'department', 'position', 'qrCode'])->get();
         return Inertia::render('users', [
             'users' => $users
         ]);
@@ -41,6 +42,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:8',
+            'qr_code_id' => 'required|exists:qr_codes,id',
             'company_id' => 'required|exists:companies,id',
             'department_id' => 'required|exists:departments,id',
             'position_id' => 'required|exists:positions,id',
@@ -72,7 +74,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         return Inertia::render('users/edit', array_merge([
-            'user' => $user->load(['company', 'department', 'position']),
+            'user' => $user->load(['company', 'department', 'position', 'qrCode']),
         ], self::getUserFormOptions($user->id)));
     }
 
@@ -85,6 +87,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8',
+            'qr_code_id' => 'required|exists:qr_codes,id',
             'company_id' => 'required|exists:companies,id',
             'department_id' => 'required|exists:departments,id',
             'position_id' => 'required|exists:positions,id',
@@ -171,6 +174,7 @@ class UserController extends Controller
         $companies = Company::select('id', 'razon_social');
         $departments = Department::select('id', 'nombre');
         $positions = Position::select('id', 'nombre');
+        $qrCodes = QrCode::select('id', 'qr_code');
         if ($excludeId) {
             $companies->where('id', '!=', $excludeId);
         }
@@ -180,14 +184,19 @@ class UserController extends Controller
         if ($excludeId) {
             $positions->where('id', '!=', $excludeId);
         }
+        if ($excludeId) {
+            $qrCodes->where('id', '!=', $excludeId);
+        }
         $companies = $companies->get();
         $departments = $departments->get();
         $positions = $positions->get();
+        $qrCodes = $qrCodes->get();
 
         return [
             'companies' => $companies,
             'departments' => $departments,
             'positions' => $positions,
+            'qrCodes' => $qrCodes,
         ];
     }
 }
