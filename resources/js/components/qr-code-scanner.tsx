@@ -2,7 +2,6 @@ import { Html5Qrcode, Html5QrcodeScannerState, Html5QrcodeSupportedFormats, type
 import { Link as LinkIcon, Repeat } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
-import { toast } from 'react-toastify';
 
 interface QRCaptureProps {
     onCodeDetected: (code: string) => void;
@@ -28,14 +27,8 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
         if (isProcessing) return;
         setIsProcessing(true);
         if (onRegister) {
-            const result = await onRegister(code);
-            if (result && result.success) {
-                toast.success(result.message || '¡Se ha registrado correctamente!');
-            } else {
-                toast.error(result?.error || 'No se pudo registrar la asistencia.');
-            }
+            await onRegister(code);
         } else {
-            toast.success('¡Se ha registrado correctamente!');
             onCodeDetected(code);
         }
         setIsProcessing(false);

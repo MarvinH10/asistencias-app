@@ -10,18 +10,13 @@ class CompaniesSeeder extends Seeder
     public function run()
     {
         Company::create([
-            'razon_social' => 'Empresa 1',
-            'ruc' => '1234567890',
+            'razon_social' => 'Kdosh Store S.A.C.',
+            'ruc' => '20542409534',
             'estado' => true,
         ]);
         Company::create([
-            'razon_social' => 'Empresa 2',
-            'ruc' => '1234567390',
-            'estado' => true,
-        ]);
-        Company::create([
-            'razon_social' => 'Empresa 3',
-            'ruc' => '1234567290',
+            'razon_social' => 'Olympo Restobar S.A.C.',
+            'ruc' => '20607051292',
             'estado' => true,
         ]);
     }

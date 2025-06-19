@@ -10,30 +10,39 @@ class DepartmentsSeeder extends Seeder
     public function run()
     {
         Department::create([
-            'nombre' => 'Departamento 1',
-            'codigo' => '1234567890',
-            'direccion' => 'Dirección 1',
-            'descripcion' => 'Descripción 1',
+            'nombre' => 'Abtao Kdosh',
+            'codigo' => '10001',
+            'direccion' => 'Jr. Abtao Nro. 1101 Huánuco',
+            'descripcion' => 'Departamento de Huánuco Abtao',
             'estado' => true,
             'parent_id' => null,
             'company_id' => 1,
         ]);
         Department::create([
-            'nombre' => 'Departamento 2',
-            'codigo' => '1234567391',
-            'direccion' => 'Dirección 2',
-            'descripcion' => 'Descripción 2',
+            'nombre' => 'San Martin Kdosh',
+            'codigo' => '10002',
+            'direccion' => 'Jr. San Martin Nro. 967 Huánuco',
+            'descripcion' => 'Departamento de Huánuco San Martin',
             'estado' => true,
             'parent_id' => 1,
             'company_id' => 1,
         ]);
         Department::create([
-            'nombre' => 'Departamento 3',
-            'codigo' => '1234567292',
-            'direccion' => 'Dirección 3',
-            'descripcion' => 'Descripción 3',
+            'nombre' => 'Abtao Olympo',
+            'codigo' => '10003',
+            'direccion' => 'Jr. Abtao Nro. 1101 Huánuco',
+            'descripcion' => 'Departamento de Huánuco Abtao',
             'estado' => true,
-            'parent_id' => 1,
+            'parent_id' => null,
+            'company_id' => 2,
+        ]);
+        Department::create([
+            'nombre' => 'Tingo María Kdosh',
+            'codigo' => '10131',
+            'direccion' => 'Av. Raymondy 269 Tingo Maria',
+            'descripcion' => 'Departamento de Tingo María',
+            'estado' => true,
+            'parent_id' => null,
             'company_id' => 1,
         ]);
     }

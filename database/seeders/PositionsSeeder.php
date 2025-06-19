@@ -16,7 +16,10 @@ class PositionsSeeder extends Seeder
             ['nombre' => 'Administrador',    'descripcion' => 'Acceso total al sistema'],
             ['nombre' => 'Gerente',          'descripcion' => 'Supervisa operaciones generales'],
             ['nombre' => 'Supervisor',       'descripcion' => 'Coordina y controla un equipo'],
-            ['nombre' => 'Empleado',         'descripcion' => 'Usuario operativo'],
+            ['nombre' => 'Vendedor',         'descripcion' => 'Vende productos'],
+            ['nombre' => 'Cajero',           'descripcion' => 'Cobra y gestiona pagos'],
+            ['nombre' => 'Mozo',             'descripcion' => 'Atiende mesas y toma pedidos'],
+            ['nombre' => 'Cocinero',         'descripcion' => 'Prepara alimentos'],
             ['nombre' => 'Recursos Humanos', 'descripcion' => 'Gestión de personal y nómina'],
         ];
 

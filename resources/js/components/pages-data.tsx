@@ -1,16 +1,16 @@
-import React, { useEffect, useState, useRef } from 'react';
-import type { ReactNode, ReactElement, } from 'react';
 import Table from '@/components/ui/table';
 import type { Column } from '@/types/components/ui/table';
-import { Download, Copy, Trash2, X, Cog } from 'lucide-react';
+import { Cog, Copy, Download, Trash2, X } from 'lucide-react';
+import type { ReactElement, ReactNode } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 
 export type CustomAction =
     | {
-        label: string;
-        icon?: ReactNode;
-        onClick: () => void;
-        className?: string;
-    }
+          label: string;
+          icon?: ReactNode;
+          onClick: () => void;
+          className?: string;
+      }
     | ReactElement;
 
 interface PagesDataProps<T extends { id: string | number }> {
@@ -26,6 +26,25 @@ interface PagesDataProps<T extends { id: string | number }> {
     onRowClick?: (row: T) => void;
     customActions?: CustomAction[];
     loading?: boolean;
+}
+
+function renderValueToString(val: unknown): string {
+    if (typeof val === 'string' || typeof val === 'number') return String(val);
+    if (typeof val === 'boolean') return val ? 'Sí' : 'No';
+    if (
+        val &&
+        typeof val === 'object' &&
+        val !== null &&
+        'props' in val &&
+        typeof (val as { props?: unknown }).props === 'object' &&
+        (val as { props?: { children?: unknown } }).props !== null &&
+        'children' in (val as { props: { children?: unknown } }).props
+    ) {
+        const children = (val as { props: { children?: unknown } }).props.children;
+        return renderValueToString(children);
+    }
+    if (Array.isArray(val)) return val.map(renderValueToString).join(' ');
+    return '';
 }
 
 function PagesData<T extends { id: string | number }>({
@@ -48,6 +67,7 @@ function PagesData<T extends { id: string | number }>({
     const [currentVisibleIds, setCurrentVisibleIds] = useState<(string | number)[]>([]);
     const [allPagesSelected, setAllPagesSelected] = useState(false);
     const actionsRef = useRef<HTMLDivElement>(null);
+    const [search, setSearch] = useState('');
 
     useEffect(() => {
         fetchData().then(setData);
@@ -91,28 +111,45 @@ function PagesData<T extends { id: string | number }>({
     };
 
     const handleTableHeaderSelect = () => {
-        const visibleSelected = currentVisibleIds.filter(id => selectedRows.has(id));
+        const visibleSelected = currentVisibleIds.filter((id) => selectedRows.has(id));
 
         if (visibleSelected.length === currentVisibleIds.length && selectedRows.size > currentVisibleIds.length) {
             setSelectedRows(new Set());
-        }
-        else if (visibleSelected.length === currentVisibleIds.length) {
+        } else if (visibleSelected.length === currentVisibleIds.length) {
             const newSelected = new Set(selectedRows);
-            currentVisibleIds.forEach(id => newSelected.delete(id));
+            currentVisibleIds.forEach((id) => newSelected.delete(id));
             setSelectedRows(newSelected);
-        }
-        else {
+        } else {
             const newSelected = new Set(selectedRows);
-            currentVisibleIds.forEach(id => newSelected.add(id));
+            currentVisibleIds.forEach((id) => newSelected.add(id));
             setSelectedRows(newSelected);
         }
     };
 
-    const visibleSelectedCount = currentVisibleIds.filter(id => selectedRows.has(id)).length;
+    const visibleSelectedCount = currentVisibleIds.filter((id) => selectedRows.has(id)).length;
     const isAllVisibleSelected = currentVisibleIds.length > 0 && visibleSelectedCount === currentVisibleIds.length;
     const isIndeterminate = visibleSelectedCount > 0 && visibleSelectedCount < currentVisibleIds.length;
     const hasMoreData = data.length > pageSize;
     const shouldShowSelectAll = hasMoreData && isAllVisibleSelected && onSelectAllPages && !allPagesSelected;
+
+    const filteredData = useMemo(() => {
+        if (!search.trim() || data.length === 0) return data;
+        const lower = search.toLowerCase();
+        return data.filter((row: T) =>
+            columns.some(col => {
+                let value: unknown;
+                if (col.render) {
+                    value = col.render(
+                        (row as Record<string, unknown>)[col.key as string] as T[keyof T],
+                        row
+                    );
+                } else {
+                    value = (row as Record<string, unknown>)[col.key as string];
+                }
+                return renderValueToString(value).toLowerCase().includes(lower);
+            })
+        );
+    }, [data, search, columns]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -130,29 +167,32 @@ function PagesData<T extends { id: string | number }>({
     return (
         <section>
             <div className="mb-4">
-                <div className="text-center sm:text-left -mb-1">
+                <div className="-mb-1 text-center sm:text-left">
                     <h2 className="text-2xl font-semibold">{title}</h2>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div className="text-center sm:text-left">
-                        {breadcrumb && (
-                            <div className="text-sm text-[#6a7282] items-center">
-                                {breadcrumb}
-                            </div>
-                        )}
+                        {breadcrumb && <div className="items-center text-sm text-[#6a7282]">{breadcrumb}</div>}
                     </div>
-                    <div className="flex-1 flex justify-center mt-1">
+                    <div className="mt-2 mb-2 flex flex-1 justify-end">
+                        <input
+                            type="text"
+                            placeholder="Escribe para buscar..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full sm:max-w-[300px] rounded border border-gray-300 px-3 py-2 text-sm focus:ring-0 focus:ring-gray-400 focus:outline-none"
+                        />
+                    </div>
+                    <div className="mt-1 flex flex-1 justify-center">
                         {selectedRows.size > 0 && (
                             <div className="flex items-center gap-3">
                                 {allPagesSelected ? (
                                     <>
-                                        <div className="bg-gray-200 border border-gray-600 rounded-sm flex items-center gap-3 px-3 py-[6.6px]">
-                                            <span className="text-[#6a7282] text-[14px] font-medium">
-                                                Todos {data.length} seleccionados
-                                            </span>
+                                        <div className="flex items-center gap-3 rounded-sm border border-gray-600 bg-gray-200 px-3 py-[6.6px]">
+                                            <span className="text-[14px] font-medium text-[#6a7282]">Todos {data.length} seleccionados</span>
                                             <button
                                                 onClick={handleClearSelection}
-                                                className="text-[#6a7282] hover:text-gray-800 cursor-pointer"
+                                                className="cursor-pointer text-[#6a7282] hover:text-gray-800"
                                                 aria-label="Clear selection"
                                             >
                                                 <X size={20} />
@@ -161,21 +201,21 @@ function PagesData<T extends { id: string | number }>({
                                     </>
                                 ) : (
                                     <>
-                                        <div className="bg-gray-200 border border-gray-600 rounded-sm flex items-center gap-3 px-3 py-1.5">
-                                            <span className="text-[#6a7282] text-[14px] font-medium">
+                                        <div className="flex items-center gap-3 rounded-sm border border-gray-600 bg-gray-200 px-3 py-1.5">
+                                            <span className="text-[14px] font-medium text-[#6a7282]">
                                                 {selectedRows.size} seleccionado{selectedRows.size > 1 ? 's' : ''}
                                             </span>
                                             {shouldShowSelectAll && (
                                                 <button
                                                     onClick={handleSelectAll}
-                                                    className="flex cursor-pointer items-center gap-1 bg-gray-500 hover:bg-gray-600 text-white px-3 py-[2px] rounded-sm text-[13px] font-medium"
+                                                    className="flex cursor-pointer items-center gap-1 rounded-sm bg-gray-500 px-3 py-[2px] text-[13px] font-medium text-white hover:bg-gray-600"
                                                 >
                                                     Seleccionar todos ({data.length})
                                                 </button>
                                             )}
                                             <button
                                                 onClick={handleClearSelection}
-                                                className="text-[#6a7282] hover:text-gray-800 cursor-pointer"
+                                                className="cursor-pointer text-[#6a7282] hover:text-gray-800"
                                                 aria-label="Clear selection"
                                             >
                                                 <X size={20} />
@@ -186,19 +226,18 @@ function PagesData<T extends { id: string | number }>({
 
                                 <div className="relative inline-block" ref={actionsRef}>
                                     <button
-                                        onClick={() => setIsActionsOpen(prev => !prev)}
-                                        className={`cursor-pointer flex items-center gap-1 px-3 py-1.5 rounded-sm text-[#6a7282] text-sm bg-gray-200 hover:bg-gray-300 \
-                                            ${isActionsOpen ? 'border border-gray-600' : 'border border-gray-200'}`}
+                                        onClick={() => setIsActionsOpen((prev) => !prev)}
+                                        className={`flex cursor-pointer items-center gap-1 rounded-sm bg-gray-200 px-3 py-1.5 text-sm text-[#6a7282] hover:bg-gray-300 ${isActionsOpen ? 'border border-gray-600' : 'border border-gray-200'}`}
                                     >
                                         <Cog size={16} />
                                         Acciones
                                     </button>
                                     {isActionsOpen && (
-                                        <div className="absolute -right-[95px] mt-2 w-48 bg-white shadow-lg rounded-sm border border-gray-300 z-10">
+                                        <div className="absolute -right-[95px] z-10 mt-2 w-48 rounded-sm border border-gray-300 bg-white shadow-lg">
                                             {onExport && (
                                                 <button
                                                     onClick={() => handleAction('export')}
-                                                    className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100 text-left text-[#6a7282] cursor-pointer"
+                                                    className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-[#6a7282] hover:bg-gray-100"
                                                 >
                                                     <Download size={14} /> Exportar
                                                 </button>
@@ -206,7 +245,7 @@ function PagesData<T extends { id: string | number }>({
                                             {onDuplicate && (
                                                 <button
                                                     onClick={() => handleAction('duplicate')}
-                                                    className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100 text-left text-[#6a7282] cursor-pointer"
+                                                    className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-[#6a7282] hover:bg-gray-100"
                                                 >
                                                     <Copy size={14} /> Duplicar
                                                 </button>
@@ -214,7 +253,7 @@ function PagesData<T extends { id: string | number }>({
                                             {onDelete && (
                                                 <button
                                                     onClick={() => handleAction('delete')}
-                                                    className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100 text-left text-[#6a7282] cursor-pointer"
+                                                    className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-[#6a7282] hover:bg-gray-100"
                                                 >
                                                     <Trash2 size={14} /> Eliminar
                                                 </button>
@@ -225,7 +264,7 @@ function PagesData<T extends { id: string | number }>({
                             </div>
                         )}
                     </div>
-                    <div className="flex items-center gap-2 mt-1 sm:mt-1 xl:mt-0">
+                    <div className="mt-1 flex items-center gap-2 sm:mt-1 xl:mt-0">
                         {customActions.map((action, idx) => {
                             if (React.isValidElement(action)) {
                                 return React.cloneElement(action, { key: idx });
@@ -243,7 +282,7 @@ function PagesData<T extends { id: string | number }>({
             </div>
             <Table
                 columns={columns}
-                data={data}
+                data={filteredData}
                 pageSize={pageSize}
                 selectedRows={selectedRows}
                 onSelectedRowsChange={setSelectedRows}

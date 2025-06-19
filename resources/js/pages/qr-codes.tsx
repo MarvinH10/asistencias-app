@@ -79,7 +79,7 @@ export default function QrCodes() {
                             <input
                                 value={data.qr_code}
                                 onChange={e => setData('qr_code', e.target.value)}
-                                className="w-full border rounded-md p-2"
+                                className="w-full border border-neutral-300 rounded-md p-2"
                                 required
                             />
                             {errors.qr_code && <p className="text-red-500 text-sm">{errors.qr_code}</p>}
@@ -95,39 +95,44 @@ export default function QrCodes() {
                         </form>
                     ) : (
                         <div className="space-y-6 p-6 flex flex-col items-center">
-                            <div
-                                ref={canvasWrapperRef}
-                                className="relative bg-white rounded-2xl"
-                            >
-                                <div style={{ position: 'relative', width: 260, height: 260 }}>
-                                    <QRCode
-                                        value={qrCode!.qr_code}
-                                        size={260}
-                                        quietZone={6}
-                                        logoImage={LogoNegroKdosh}
-                                        logoWidth={60}
-                                        logoHeight={52}
-                                        logoPadding={8}
-                                        logoPaddingStyle="circle"
-                                        qrStyle="dots"
-                                    />
+                            {qrCode ? (
+                                <>
+                                    <div
+                                        ref={canvasWrapperRef}
+                                        className="relative bg-white rounded-2xl"
+                                    >
+                                        <div style={{ position: 'relative', width: 260, height: 260 }}>
+                                            <QRCode
+                                                value={qrCode.qr_code}
+                                                size={260}
+                                                quietZone={6}
+                                                logoImage={LogoNegroKdosh}
+                                                logoWidth={60}
+                                                logoHeight={52}
+                                                logoPadding={8}
+                                                logoPaddingStyle="circle"
+                                                qrStyle="dots"
+                                            />
+                                        </div>
+                                    </div>
+                                    <p className={`text-sm font-mono ${effectiveTheme === 'dark' ? 'text-neutral-100' : 'text-neutral-700'}`}>{qrCode.qr_code}</p>
+                                    <div className="flex gap-3">
+                                        <Button label="Descargar QR" onClick={handleDownload} variant="secondary" size="sm" />
+                                        <Button label="Copiar Código" onClick={() => { navigator.clipboard.writeText(qrCode.qr_code); toast.success('Código copiado'); }} variant="secondary" size="sm" />
+                                        <Button
+                                            label="Imprimir QR"
+                                            onClick={handlePrint}
+                                            variant="secondary"
+                                            size="sm"
+                                            disabled={processing}
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center min-h-[260px] w-full">
+                                    <div className="text-center text-neutral-500 mb-9">No hay código QR registrado. Haz clic en "Crear QR".</div>
                                 </div>
-                            </div>
-
-                            <p className={`text-sm font-mono ${effectiveTheme === 'dark' ? 'text-neutral-100' : 'text-neutral-700'}`}>{qrCode!.qr_code}</p>
-
-                            <div className="flex gap-3">
-                                <Button label="Descargar QR" onClick={handleDownload} variant="secondary" size="sm" />
-                                <Button label="Copiar Código" onClick={() => { navigator.clipboard.writeText(qrCode!.qr_code); toast.success('Código copiado'); }} variant="secondary" size="sm" />
-                                <Button
-                                    label="Imprimir QR"
-                                    onClick={handlePrint}
-                                    variant="secondary"
-                                    size="sm"
-                                    disabled={processing}
-                                />
-                            </div>
-
+                            )}
                             <div className={`text-sm ${effectiveTheme === 'dark' ? 'text-neutral-400' : 'text-neutral-600'}`}>
                                 <p>• Este es el código QR único que se usará para el registro de asistencias</p>
                                 <p>• Los usuarios pueden escanear este código para marcar su asistencia</p>

@@ -7,6 +7,7 @@ use App\Models\AttendanceRecord;
 use App\Models\QrCode;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class AttendanceController extends Controller
 {
@@ -87,7 +88,7 @@ class AttendanceController extends Controller
                 'estado' => true,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error al registrar asistencia: ' . $e->getMessage());
+            Log::error('Error al registrar asistencia: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'error' => 'Ocurrió un error inesperado al registrar la asistencia. Intenta nuevamente o contacta al administrador.'

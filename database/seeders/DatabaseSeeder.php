@@ -29,8 +29,8 @@ class DatabaseSeeder extends Seeder
         $position = Position::first();
 
         User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@gmail.com',
+            'name' => 'Marvin Campos',
+            'email' => 'marvinhectorcamposdeza@gmail.com',
             'password' => Hash::make('210701'),
             'company_id' => $company->id,
             'department_id' => $department->id,

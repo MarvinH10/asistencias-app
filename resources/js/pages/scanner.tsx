@@ -1,6 +1,7 @@
 import QRCapture from '@/components/qr-code-scanner';
 import { Head } from '@inertiajs/react';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 const ScannerPage: React.FC = () => {
     const [isCameraActive, setIsCameraActive] = useState(false);
@@ -159,17 +160,78 @@ const ScannerPage: React.FC = () => {
         }
     }, [isCameraActive, currentLocation]);
 
+    const handleRegister = async (code: string) => {
+        let lat = currentLocation?.lat;
+        let lng = currentLocation?.lng;
+        let result;
+        setIsGettingLocation(true);
+        try {
+            if (!lat || !lng) {
+                await new Promise((resolve) => {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                lat = position.coords.latitude.toString();
+                                lng = position.coords.longitude.toString();
+                                setCurrentLocation({ lat, lng });
+                                resolve(null);
+                            },
+                            () => resolve(null),
+                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+                        );
+                    } else {
+                        resolve(null);
+                    }
+                });
+            }
+            result = await registerAttendance(code, 'Entrada', lat, lng);
+        } finally {
+            setIsGettingLocation(false);
+        }
+        if (result?.success) {
+            toast.success(result.message || '¡Se ha registrado correctamente!');
+        } else {
+            toast.error(result?.error || 'No se pudo registrar la asistencia.');
+        }
+        return result;
+    };
+
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden && isGettingLocation) {
+                setLocationError('Debes mantener la pestaña activa para obtener la ubicación.');
+                setIsGettingLocation(false);
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [isGettingLocation]);
+
     return (
         <div className="min-h-screen w-full bg-black bg-gradient-to-tl from-neutral-700 via-neutral-800 to-neutral-900 py-8">
             <Head title="Escáner" />
             <div className="mx-auto max-w-2xl px-4">
                 <div className="mb-8 text-center mt-6">
                     <h1 className="mb-8 text-2xl font-bold text-white">Escanee el código QR</h1>
-                    {locationError && <div className="mb-4 rounded border border-yellow-300 bg-yellow-100 p-2 text-yellow-800">{locationError}</div>}
+                    {locationError && (
+                        <div>
+                            <div className="mb-4 rounded border border-yellow-300 bg-yellow-100 p-2 text-yellow-800">{locationError}</div>
+                            <button
+                                onClick={() => {
+                                    setLocationError(null);
+                                    setIsGettingLocation(true);
+                                }}
+                                className="mt-2 rounded bg-yellow-400 px-4 py-2 font-bold text-white"
+                            >
+                                Intentar de nuevo
+                            </button>
+                        </div>
+                    )}
                     <QRCapture
                         onCodeDetected={isGettingLocation ? () => {} : (code) => handleCodeDetected(code)}
                         isActive={isCameraActive && !isGettingLocation}
                         onToggle={handleCameraToggle}
+                        onRegister={handleRegister}
                     />
                 </div>
             </div>
