@@ -100,38 +100,33 @@ const ScannerPage: React.FC = () => {
 
     const handleCodeDetected = useCallback(
         async (code: string) => {
-            console.log('🔍 Código QR detectado:', code);
             setLocationError(null);
 
             // Función para registrar asistencia
             const addRecord = async (lat?: string, lng?: string) => {
-                console.log('📝 Registrando asistencia con coordenadas:', lat, lng);
                 try {
                     const result = await registerAttendance(code, 'Entrada', lat, lng);
                     if (result.success) {
-                        console.log('✅ Asistencia registrada correctamente');
                         toast.success(result.message || '¡Asistencia registrada correctamente!');
                     } else {
-                        console.error('❌ Error al registrar asistencia:', result.error);
                         toast.error(result.error || 'No se pudo registrar la asistencia.');
                     }
                 } catch (error) {
-                    console.error('❌ Error en la petición de registro:', error);
                     toast.error('Error de conexión al registrar asistencia');
                 } finally {
                     setIsGettingLocation(false);
+                    // Desactivar la cámara después de registrar
+                    setIsCameraActive(false);
                 }
             };
 
             // Si ya tenemos ubicación, usarla directamente
             if (currentLocation) {
-                console.log('📍 Usando ubicación guardada:', currentLocation);
                 await addRecord(currentLocation.lat, currentLocation.lng);
                 return;
             }
 
             // Intentar obtener ubicación con un timeout corto
-            console.log('🔍 Intentando obtener ubicación para QR detectado...');
             setIsGettingLocation(true);
             
             try {
@@ -141,13 +136,10 @@ const ScannerPage: React.FC = () => {
                     setTimeout(() => reject(new Error('Timeout obteniendo ubicación')), 5000);
                 });
                 
-                console.log('⏱️ Esperando ubicación con timeout de 5 segundos...');
                 const location = await Promise.race([locationPromise, timeoutPromise]);
                 
-                console.log('✅ Ubicación obtenida:', location);
                 await addRecord(location.lat, location.lng);
             } catch (error) {
-                console.warn('⚠️ No se pudo obtener la ubicación:', error);
                 let errorMessage = 'No se pudo obtener la ubicación. El registro se guardará sin coordenadas.';
                 
                 if (error instanceof Error) {
@@ -172,7 +164,6 @@ const ScannerPage: React.FC = () => {
 
     // Función para activar/desactivar la cámara
     const handleCameraToggle = useCallback(() => {
-        console.log('🔄 Cambiando estado de cámara...');
         const newCameraState = !isCameraActive;
         setIsCameraActive(newCameraState);
         setLocationError(null);
@@ -180,11 +171,9 @@ const ScannerPage: React.FC = () => {
         // Si estamos activando la cámara y no tenemos ubicación, intentamos obtenerla
         // pero no bloqueamos la activación de la cámara
         if (newCameraState && !currentLocation) {
-            console.log('📍 Solicitando ubicación en segundo plano...');
             // Usar setTimeout para asegurar que la activación de la cámara no se bloquee
             setTimeout(() => {
                 getLocation().catch(err => {
-                    console.warn('⚠️ No se pudo obtener la ubicación, pero la cámara seguirá funcionando:', err.message);
                     // No bloqueamos la activación de la cámara si falla la geolocalización
                 });
             }, 500);
@@ -192,7 +181,6 @@ const ScannerPage: React.FC = () => {
     }, [isCameraActive, currentLocation, getLocation]);
 
     const handleRegister = async (code: string) => {
-        console.log('📝 Iniciando registro de asistencia con código:', code);
         let lat = currentLocation?.lat;
         let lng = currentLocation?.lng;
         let result;
@@ -200,7 +188,6 @@ const ScannerPage: React.FC = () => {
         try {
             // Si no tenemos ubicación, intentamos obtenerla pero con un timeout más corto
             if (!lat || !lng) {
-                console.log('🔍 No hay ubicación guardada, intentando obtenerla...');
                 setIsGettingLocation(true);
                 
                 try {
@@ -210,14 +197,11 @@ const ScannerPage: React.FC = () => {
                         setTimeout(() => reject(new Error('Timeout obteniendo ubicación')), 3000);
                     });
                     
-                    console.log('⏱️ Esperando ubicación con timeout de 3 segundos...');
                     const location = await Promise.race([locationPromise, timeoutPromise]);
                     
                     lat = location.lat;
                     lng = location.lng;
-                    console.log('✅ Ubicación obtenida para el registro:', lat, lng);
                 } catch (locationError) {
-                    console.warn('⚠️ No se pudo obtener la ubicación para el registro:', locationError);
                     // Mostramos un mensaje pero continuamos sin ubicación
                     toast.info('Registrando sin ubicación. Para mejor precisión, intente nuevamente permitiendo el acceso a la ubicación.');
                 } finally {
@@ -226,17 +210,16 @@ const ScannerPage: React.FC = () => {
             }
             
             // Registramos la asistencia con o sin ubicación
-            console.log('📤 Enviando registro al servidor con coordenadas:', lat, lng);
             result = await registerAttendance(code, 'Entrada', lat, lng);
-            console.log('📥 Respuesta del servidor:', result);
         } catch (error) {
-            console.error('❌ Error en el proceso de registro:', error);
             result = {
                 success: false,
                 error: 'Error en el proceso de registro: ' + (error instanceof Error ? error.message : String(error))
             };
         } finally {
             setIsGettingLocation(false);
+            // Desactivar la cámara después de registrar
+            setIsCameraActive(false);
         }
         
         if (result?.success) {
@@ -292,7 +275,7 @@ const ScannerPage: React.FC = () => {
                                 onClick={() => {
                                     setLocationError(null);
                                     getLocation().catch(err => {
-                                        console.warn('No se pudo obtener ubicación:', err);
+                                        // Error al obtener ubicación
                                     });
                                 }}
                                 className="mt-2 rounded-lg bg-yellow-400 px-4 py-2 font-bold text-white shadow-md hover:bg-yellow-500 transition-colors duration-300"

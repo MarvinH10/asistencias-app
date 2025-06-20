@@ -32,20 +32,22 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
             onCodeDetected(code);
         }
         setIsProcessing(false);
+        // Desactivar la cámara después de detectar un código QR
+        if (isActive && onToggle) {
+            onToggle();
+        }
     };
 
     const startScanner = useCallback(async () => {
         if (!currentCameraId || !isActive || isProcessing) return;
         setError(null);
         try {
-            console.log('🔄 Iniciando escáner con cámara ID:', currentCameraId);
-            
             // Limpiar cualquier instancia previa
             if (scannerRef.current) {
                 try {
                     await stopScanner();
                 } catch (e) {
-                    console.warn('⚠️ Error al limpiar escáner previo:', e);
+                    // Error al limpiar escáner previo
                 }
             }
             
@@ -55,10 +57,8 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
             // Crear nueva instancia con modo verbose para depuración
             scannerRef.current = new Html5Qrcode('qr-reader', {
                 formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-                verbose: true, // Activar logs para depuración
+                verbose: false, // Desactivar logs para producción
             });
-            
-            console.log('📷 Instancia de escáner creada, iniciando cámara...');
             
             // Configuración más básica para evitar problemas
             const config = {
@@ -71,7 +71,6 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
                 currentCameraId, // Usar solo el ID sin restricciones exactas
                 config,
                 (decodedText: string) => {
-                    console.log('✅ QR detectado:', decodedText);
                     const now = Date.now();
                     if (decodedText !== lastDetectedRef.current.code || now - lastDetectedRef.current.timestamp > 2000) {
                         lastDetectedRef.current = {
@@ -82,15 +81,10 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
                     }
                 },
                 (errorMsg: string) => {
-                    if (!errorMsg.includes('No QR code found')) {
-                        console.warn('⚠️ Escaneo fallido:', errorMsg);
-                    }
+                    // No hacemos nada con los errores de escaneo
                 },
             );
-            
-            console.log('✅ Cámara iniciada correctamente');
         } catch (err) {
-            console.error('❌ Error al iniciar la cámara:', err);
             const msg = (err instanceof Error ? err.message : String(err)) || 'No se pudo iniciar la cámara';
             setError(msg);
             
@@ -100,7 +94,7 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
                     await scannerRef.current.clear();
                     scannerRef.current = null;
                 } catch (clearErr) {
-                    console.error('Error al limpiar recursos:', clearErr);
+                    // Error al limpiar recursos
                 }
             }
         }
@@ -109,16 +103,13 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
     const stopScanner = async () => {
         if (scannerRef.current) {
             try {
-                console.log('🛑 Deteniendo escáner...');
                 if (scannerRef.current.getState() === Html5QrcodeScannerState.SCANNING) {
                     await scannerRef.current.stop();
                 }
                 scannerRef.current.clear();
                 scannerRef.current = null;
-                console.log('✅ Escáner detenido correctamente');
                 return true;
             } catch (err) {
-                console.warn('⚠️ Error al detener el escáner:', err);
                 return false;
             }
         }
@@ -144,10 +135,8 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
     };
 
     useEffect(() => {
-        console.log('🔍 Buscando cámaras disponibles...');
         Html5Qrcode.getCameras()
             .then((devices) => {
-                console.log('📷 Cámaras encontradas:', devices.length, devices);
                 setCameras(devices);
                 
                 // Intentar encontrar la cámara trasera
@@ -157,18 +146,14 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
                 });
                 
                 if (backCamera) {
-                    console.log('✅ Cámara trasera encontrada:', backCamera.label);
                     setCurrentCameraId(backCamera.id);
                 } else if (devices.length > 0) {
-                    console.log('ℹ️ Usando primera cámara disponible:', devices[0].label);
                     setCurrentCameraId(devices[0].id);
                 } else {
-                    console.error('❌ No se encontraron cámaras');
                     setError('No se encontraron cámaras en el dispositivo.');
                 }
             })
             .catch((err) => {
-                console.error('❌ Error al obtener cámaras:', err);
                 setError('No se pudieron listar las cámaras disponibles. ' + (err instanceof Error ? err.message : String(err)));
             });
     }, []);
