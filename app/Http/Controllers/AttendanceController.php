@@ -8,6 +8,7 @@ use App\Models\QrCode;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Exception;
 
 class AttendanceController extends Controller
 {
@@ -23,35 +24,36 @@ class AttendanceController extends Controller
         ]);
         
         $qrCode = QrCode::where('qr_code', $validated['qr_code'])->first();
-        
         if (!$qrCode) {
             return response()->json([
                 'success' => false,
                 'error' => 'Código QR no válido. Por favor, verifica el código e intenta nuevamente.'
             ], 404);
         }
-        
-        $user = User::where('qr_code_id', $qrCode->id)->first();
-        
+
+        $user = auth()->user();
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'error' => 'No se encontró un usuario asociado a este código QR. Por favor, contacta al administrador.'
-            ], 404);
+                'error' => 'No hay usuario autenticado.'
+            ], 401);
         }
 
-        // Verificar si ya existe un registro reciente (últimos 30 segundos)
-        // $recentRecord = AttendanceRecord::where('user_id', $user->id)
-        //     ->where('qr_token', $validated['qr_code'])
-        //     ->where('created_at', '>=', now()->subSeconds(30))
-        //     ->first();
+        Log::info('QR recibido: ' . $validated['qr_code']);
+        Log::info('ID QR encontrado: ' . ($qrCode ? $qrCode->id : 'Ninguno'));
+        Log::info('Usuario encontrado: ' . ($user ? $user->name . ' (ID: ' . $user->id . ')' : 'Ninguno'));
 
-        // if ($recentRecord) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'error' => 'Ya se registró una asistencia recientemente. Espera unos segundos antes de intentar nuevamente.'
-        //     ], 409);
-        // }
+        $recentRecord = AttendanceRecord::where('user_id', $user->id)
+            ->where('qr_token', $validated['qr_code'])
+            ->where('created_at', '>=', now()->subSeconds(30))
+            ->first();
+
+        if ($recentRecord) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Ya se registró una asistencia recientemente. Espera 30 segundos antes de intentar nuevamente.'
+            ], 409);
+        }
 
         // Verificar si hay un registro del mismo tipo en los últimos 5 minutos
         // $recentSameType = AttendanceRecord::where('user_id', $user->id)
@@ -87,7 +89,7 @@ class AttendanceController extends Controller
                 'longitude' => $validated['longitude'] ?? null,
                 'estado' => true,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Error al registrar asistencia: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
