@@ -1,5 +1,5 @@
 import { Html5Qrcode, Html5QrcodeScannerState, Html5QrcodeSupportedFormats, type CameraDevice } from 'html5-qrcode';
-import { Link as LinkIcon, Repeat } from 'lucide-react';
+import { Link as LinkIcon } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
 
@@ -23,7 +23,7 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
     const [manualCode, setManualCode] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const handleCodeDetected = async (code: string) => {
+    const handleCodeDetected = useCallback(async (code: string) => {
         if (isProcessing) return;
         setIsProcessing(true);
         if (onRegister) {
@@ -32,43 +32,37 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
             onCodeDetected(code);
         }
         setIsProcessing(false);
-        // Desactivar la cámara después de detectar un código QR
         if (isActive && onToggle) {
             onToggle();
         }
-    };
+    }, [isProcessing, onRegister, onCodeDetected, isActive, onToggle]);
 
     const startScanner = useCallback(async () => {
         if (!currentCameraId || !isActive || isProcessing) return;
         setError(null);
         try {
-            // Limpiar cualquier instancia previa
             if (scannerRef.current) {
                 try {
                     await stopScanner();
                 } catch (e) {
-                    // Error al limpiar escáner previo
+                    console.error("Error al limpiar escáner previo:", e);
                 }
             }
             
-            // Esperar un momento para asegurar que la cámara se libere
             await new Promise(resolve => setTimeout(resolve, 500));
             
-            // Crear nueva instancia con modo verbose para depuración
             scannerRef.current = new Html5Qrcode('qr-reader', {
                 formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-                verbose: false, // Desactivar logs para producción
+                verbose: false,
             });
             
-            // Configuración más básica para evitar problemas
             const config = {
-                fps: 5, // Reducido para menor consumo
-                qrbox: 250, // Formato simplificado
+                fps: 5,
+                qrbox: 250,
             };
             
-            // Intentar iniciar con configuración de dispositivo más flexible
             await scannerRef.current.start(
-                currentCameraId, // Usar solo el ID sin restricciones exactas
+                currentCameraId,
                 config,
                 (decodedText: string) => {
                     const now = Date.now();
@@ -80,25 +74,23 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
                         handleCodeDetected(decodedText);
                     }
                 },
-                (errorMsg: string) => {
-                    // No hacemos nada con los errores de escaneo
+                () => {
                 },
             );
         } catch (err) {
             const msg = (err instanceof Error ? err.message : String(err)) || 'No se pudo iniciar la cámara';
             setError(msg);
             
-            // Intentar liberar recursos en caso de error
             if (scannerRef.current) {
                 try {
                     await scannerRef.current.clear();
                     scannerRef.current = null;
                 } catch (clearErr) {
-                    // Error al limpiar recursos
+                    console.error("Error al limpiar recursos del escáner:", clearErr);
                 }
             }
         }
-    }, [currentCameraId, isActive, isProcessing]);
+    }, [currentCameraId, isActive, isProcessing, handleCodeDetected]);
 
     const stopScanner = async () => {
         if (scannerRef.current) {
@@ -110,6 +102,7 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
                 scannerRef.current = null;
                 return true;
             } catch (err) {
+                console.error("Error al detener el escáner:", err);
                 return false;
             }
         }
@@ -127,19 +120,11 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
         };
     }, [isActive, currentCameraId, startScanner, activeTab]);
 
-    const toggleCamera = () => {
-        if (cameras.length < 2) return;
-        const currentIndex = cameras.findIndex((cam) => cam.id === currentCameraId);
-        const nextIndex = (currentIndex + 1) % cameras.length;
-        setCurrentCameraId(cameras[nextIndex].id);
-    };
-
     useEffect(() => {
         Html5Qrcode.getCameras()
             .then((devices) => {
                 setCameras(devices);
                 
-                // Intentar encontrar la cámara trasera
                 const backCamera = devices.find((d) => {
                     const label = d.label.toLowerCase();
                     return label.includes('back') || label.includes('rear') || label.includes('trasera') || label.includes('posterior');
@@ -232,62 +217,78 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
     );
 
     return (
-        <div className="flex flex-col items-center justify-center px-4 py-6">
-            <div className="mx-auto flex w-full max-w-xs flex-col items-center gap-6">
+        <div className="flex flex-col items-center justify-center w-full h-full">
+            <div className="mx-auto flex w-full max-w-xs flex-col items-center gap-4 flex-grow justify-center">
                 {activeTab === 'scan' ? (
                     <>
                         {hasCameras ? (
-                            <>
-                                <div className="relative flex h-64 w-64 items-center justify-center overflow-hidden rounded-2xl border-4 border-neutral-700 bg-black shadow-lg">
-                                    {isActive && !error && (
-                                        <div className="pointer-events-none absolute top-0 left-0 z-20 h-full w-full">
-                                            <div
-                                                className="animate-scanline absolute left-0 h-1 w-full bg-gradient-to-r from-transparent via-gray-500 to-transparent"
-                                                style={{ top: '50%' }}
-                                            />
+                            !isActive ? (
+                                <div className="text-center">
+                                    <button
+                                        onClick={onToggle}
+                                        className="mb-4 rounded-lg bg-gradient-to-tr from-neutral-700 to-neutral-500 px-6 py-3 font-semibold text-white shadow hover:brightness-110 transition-all duration-300 transform hover:scale-105"
+                                    >
+                                        <div className="flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                                            </svg>
+                                            Activar Cámara
                                         </div>
-                                    )}
-                                    <div className="absolute top-0 left-0 h-6 w-6 rounded-tl-xl border-t-4 border-l-4 border-white" />
-                                    <div className="absolute top-0 right-0 h-6 w-6 rounded-tr-xl border-t-4 border-r-4 border-white" />
-                                    <div className="absolute bottom-0 left-0 h-6 w-6 rounded-bl-xl border-b-4 border-l-4 border-white" />
-                                    <div className="absolute right-0 bottom-0 h-6 w-6 rounded-br-xl border-r-4 border-b-4 border-white" />
-                                    <div id="qr-reader" className="z-10 h-full w-full" />
-                                    {isActive && !error && (
-                                        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-                                            <div className="bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-xs">
-                                                Cámara activada...
-                                            </div>
-                                        </div>
-                                    )}
+                                    </button>
+                                    <p className="text-sm text-neutral-300">Haga clic para iniciar el escáner de QR</p>
                                 </div>
-                                <LinkButton />
-                                <p className="mt-15 max-w-xs text-center text-sm text-neutral-300">
-                                    El código QR se detectará automáticamente cuando lo posiciones entre las líneas guía
-                                </p>
-                                {/* Botón de cambio de cámara eliminado para simplificar la interfaz */}
-                                {error && (
-                                    <div className="mt-4 w-full rounded-lg border border-red-400 bg-red-100 p-3 text-red-700">
-                                        <p className="font-medium">Error de cámara:</p>
-                                        <p className="text-sm">{error}</p>
+                            ) : (
+                                <>
+                                    <div className="relative flex h-60 w-60 items-center justify-center overflow-hidden rounded-2xl border-4 border-neutral-700 bg-black shadow-lg">
+                                        {isActive && !error && (
+                                            <div className="pointer-events-none absolute top-0 left-0 z-20 h-full w-full">
+                                                <div
+                                                    className="animate-scanline absolute left-0 h-1 w-full bg-gradient-to-r from-transparent via-gray-500 to-transparent"
+                                                    style={{ top: '50%' }}
+                                                />
+                                            </div>
+                                        )}
+                                        <div className="absolute top-0 left-0 h-6 w-6 rounded-tl-xl border-t-4 border-l-4 border-white" />
+                                        <div className="absolute top-0 right-0 h-6 w-6 rounded-tr-xl border-t-4 border-r-4 border-white" />
+                                        <div className="absolute bottom-0 left-0 h-6 w-6 rounded-bl-xl border-b-4 border-l-4 border-white" />
+                                        <div className="absolute right-0 bottom-0 h-6 w-6 rounded-br-xl border-r-4 border-b-4 border-white" />
+                                        <div id="qr-reader" className="z-10 h-full w-full" />
+                                        {isActive && !error && (
+                                            <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                                                <div className="bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-xs">
+                                                    Cámara activada...
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </>
+                                    <LinkButton />
+                                    <p className="max-w-xs text-center text-sm text-neutral-300">
+                                        El código QR se detectará automáticamente
+                                    </p>
+                                    {error && (
+                                        <div className="mt-4 w-full rounded-lg border border-red-400 bg-red-100 p-3 text-red-700">
+                                            <p className="font-medium">Error de cámara:</p>
+                                            <p className="text-sm">{error}</p>
+                                        </div>
+                                    )}
+                                </>
+                            )
                         ) : (
                             <>
-                                <div className="mt-9">
-                                    <QRCode value="DEMO-QR" bgColor="transparent" fgColor="#fff" size={200} />
+                                <div className="mt-4">
+                                    <QRCode value="DEMO-QR" bgColor="transparent" fgColor="#fff" size={180} />
                                 </div>
                                 <LinkButton />
-                                <p className="mt-15 max-w-xs text-center text-sm text-neutral-300">
-                                    El código QR se detectará automáticamente cuando lo posiciones entre las líneas guía
+                                <p className="max-w-xs text-center text-sm text-neutral-300 mb-10">
+                                    No se detectaron cámaras, active los permisos o use la entrada manual.
                                 </p>
                             </>
                         )}
                     </>
                 ) : (
-                    <div className="mt-[40px] flex flex-col items-center justify-center">
-                        <div className="mb-10">
-                            <QRCode value={manualCode || ' '} bgColor="transparent" fgColor="#fff" size={200} />
+                    <div className="flex flex-col items-center justify-center">
+                        <div className="mb-4">
+                            <QRCode value={manualCode || ' '} bgColor="transparent" fgColor="#fff" size={180} />
                         </div>
                         <form onSubmit={handleManualSubmit} className="flex w-full max-w-xs flex-col items-center justify-center gap-4">
                             <input
@@ -307,19 +308,8 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
                         </form>
                     </div>
                 )}
-
-                <TabButtons />
             </div>
-
-            <style>{`
-                @keyframes scanline {
-                    0% { top: 10%; }
-                    100% { top: 80%; }
-                }
-                .animate-scanline {
-                    animation: scanline 1.5s infinite alternate cubic-bezier(0.4,0,0.2,1);
-                }
-            `}</style>
+            <TabButtons />
         </div>
     );
 };
