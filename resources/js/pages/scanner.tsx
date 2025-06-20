@@ -1,9 +1,25 @@
 import QRCapture from '@/components/qr-code-scanner';
-import { Head } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import React, { useCallback, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import type { PageProps as InertiaPageProps } from '@inertiajs/core';
+
+interface ScannerPageProps extends InertiaPageProps {
+    auth: {
+        user: {
+            id: number;
+            name: string;
+            email: string;
+            position?: {
+                id: number;
+                nombre: string;
+            }
+        } | null;
+    };
+}
 
 const ScannerPage: React.FC = () => {
+    const { auth } = usePage<ScannerPageProps>().props;
     const [isCameraActive, setIsCameraActive] = useState(false);
     const [isGettingLocation, setIsGettingLocation] = useState(false);
     const [err, setLocationError] = useState<string | null>(null);
@@ -229,9 +245,21 @@ const ScannerPage: React.FC = () => {
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [isGettingLocation]);
 
+    const hasAdminAccess = ['Administrador', 'Gerente', 'Recursos Humanos'].includes(auth.user?.position?.nombre ?? '');
+
     return (
-        <div className="h-screen overflow-hidden w-full bg-black bg-gradient-to-tl from-neutral-700 via-neutral-800 to-neutral-900 flex flex-col">
+        <div className="h-screen overflow-hidden w-full bg-black bg-gradient-to-tl from-neutral-700 via-neutral-800 to-neutral-900 flex flex-col relative">
             <Head title="Escáner" />
+
+            {hasAdminAccess && (
+                <Link
+                    href="/dashboard"
+                    className="absolute top-20 right-4 z-10 rounded-md bg-white bg-opacity-50 shadow-md px-4 py-2 text-sm font-medium text-neutral-800 transition hover:bg-neutral-200 cursor-pointer"
+                >
+                    Panel
+                </Link>
+            )}
+
             <div className="flex-shrink-0 text-center w-full max-w-md pt-6 px-4 mx-auto">
                 <h1 className="text-2xl font-bold text-white mb-4">Escanee el código QR</h1>
 
