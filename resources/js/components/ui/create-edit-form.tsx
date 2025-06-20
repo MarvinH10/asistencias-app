@@ -1,9 +1,25 @@
 import React from 'react';
 import { useForm, router } from '@inertiajs/react';
 import { toast } from 'react-toastify';
-import Button from '@/components/ui/button-create-edit-form';
+import {default as SubmitButton} from '@/components/ui/button-create-edit-form';
+import { Button } from '@/components/ui/button';
 import type { CreateEditFormProps, FormField } from '@/types/components/ui/form';
 import { Switch } from "@/components/ui/switch"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 type FormValue = string | number | boolean | File | null;
 
@@ -87,19 +103,21 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
     };
 
     const renderField = (field: FormField) => {
-        const getFieldValue = (fieldName: string): string | number => {
+        const getFieldValue = (fieldName: string): string => {
             const value = data[fieldName];
-            if (typeof value === 'boolean') return value ? 'true' : 'false';
-            if (value === null || value === undefined) return '';
-            if (value instanceof File) return '';
+            if (value === null || value === undefined) {
+                return '';
+            }
+
             const fieldType = fields.find(f => f.name === fieldName)?.type;
+
             if (fieldType === 'datetime-local') {
                 return toDatetimeLocal(value as string);
             }
             if (fieldType === 'date') {
                 return toDateInput(value as string);
             }
-            return value;
+            return String(value);
         };
 
         const commonProps = {
@@ -110,10 +128,6 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                 const value = e.target.value;
                 setData(field.name, value === '' ? null : value);
             },
-            className: `mt-1 block w-full rounded-md border border-gray-300 dark:border-neutral-700 hover:border-gray-400 dark:hover:border-neutral-500 focus:border-gray-400 dark:focus:border-neutral-500 focus:ring-0 focus:ring-gray-400 focus:outline-none sm:text-sm p-2 transition-all duration-200 bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 ${errors[field.name]
-                ? 'border-red-500 hover:border-red-600 focus:border-red-600 focus:ring-red-200'
-                : ''
-                }`,
             required: field.required,
             placeholder: field.placeholder,
         };
@@ -121,23 +135,28 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
         switch (field.type) {
             case 'select':
                 return (
-                    <select {...commonProps}>
-                        {(!field.required || !getFieldValue(field.name)) && (
-                            <option value="">
-                                {field.placeholder || `Seleccione ${field.label}`}
-                            </option>
-                        )}
-                        {field.options?.map((option) => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
+                    <Select
+                        name={field.name}
+                        value={getFieldValue(field.name)}
+                        onValueChange={(value) => setData(field.name, value)}
+                        required={field.required}
+                    >
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder={field.placeholder || `Seleccione ${field.label}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {field.options?.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 );
 
             case 'textarea':
                 return (
-                    <textarea
+                    <Textarea
                         {...commonProps}
                         rows={4}
                         minLength={field.validation?.minLength}
@@ -148,7 +167,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
 
             case 'number':
                 return (
-                    <input
+                    <Input
                         {...commonProps}
                         type="number"
                         min={field.validation?.min}
@@ -169,7 +188,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
 
             case 'file':
                 return (
-                    <input
+                    <Input
                         type="file"
                         name={field.name}
                         id={field.name}
@@ -178,29 +197,163 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                             const file = e.target.files?.[0] || null;
                             setData(field.name, file);
                         }}
-                        className={commonProps.className}
                     />
                 );
 
             case 'password':
                 return (
-                    <input
+                    <Input
                         {...commonProps}
                         type="password"
                     />
                 );
 
-            case 'datetime-local':
+            case 'date': {
+                const dateValue = data[field.name] as string | null;
+                const selected = dateValue ? new Date(`${dateValue}T00:00:00`) : undefined;
                 return (
-                    <input
-                        {...commonProps}
-                        type="datetime-local"
-                    />
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant={'outline'}
+                                className={cn(
+                                    'w-full justify-start text-left font-normal',
+                                    !dateValue && 'text-muted-foreground'
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {dateValue ? format(selected!, 'PPP', { locale: es }) : <span>Seleccione una fecha</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={selected}
+                                onSelect={(date) => setData(field.name, date ? format(date, 'yyyy-MM-dd') : null)}
+                                initialFocus
+                                locale={es}
+                            />
+                        </PopoverContent>
+                    </Popover>
                 );
+            }
+
+            case 'datetime-local': {
+                const selectedDate = data[field.name] ? new Date(data[field.name] as string) : null;
+                return (
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant={'outline'}
+                                className={cn(
+                                    'w-full justify-start text-left font-normal',
+                                    !selectedDate && 'text-muted-foreground'
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {selectedDate ? format(selectedDate, 'PPP p', { locale: es }) : <span>Seleccione fecha y hora</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={selectedDate || undefined}
+                                onSelect={(date) => {
+                                    const newDate = date ? new Date(date) : new Date();
+                                    const currentVal = selectedDate || new Date();
+                                    newDate.setHours(currentVal.getHours());
+                                    newDate.setMinutes(currentVal.getMinutes());
+                                    setData(field.name, format(newDate, "yyyy-MM-dd'T'HH:mm"));
+                                }}
+                                initialFocus
+                                locale={es}
+                            />
+                            <div className="p-2 border-t border-border flex items-center justify-center gap-2">
+                                <Select
+                                    value={selectedDate ? String(selectedDate.getHours()).padStart(2, '0') : '00'}
+                                    onValueChange={hour => {
+                                        const newDate = selectedDate || new Date();
+                                        newDate.setHours(parseInt(hour, 10));
+                                        setData(field.name, format(newDate, "yyyy-MM-dd'T'HH:mm"));
+                                    }}
+                                >
+                                    <SelectTrigger className="w-[80px]">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')).map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                                :
+                                <Select
+                                    value={selectedDate ? String(selectedDate.getMinutes()).padStart(2, '0') : '00'}
+                                    onValueChange={min => {
+                                        const newDate = selectedDate || new Date();
+                                        newDate.setMinutes(parseInt(min, 10));
+                                        setData(field.name, format(newDate, "yyyy-MM-dd'T'HH:mm"));
+                                    }}
+                                >
+                                    <SelectTrigger className="w-[80px]">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                )
+            }
+
+            case 'time': {
+                const timeValue = data[field.name] as string | null;
+                const [hour, minute] = timeValue ? timeValue.split(':') : ['00', '00'];
+
+                const handleTimeChange = (part: 'hour' | 'minute', value: string) => {
+                    let newHour = hour;
+                    let newMinute = minute;
+
+                    if (part === 'hour') {
+                        newHour = value;
+                    } else {
+                        newMinute = value;
+                    }
+                    setData(field.name, `${newHour}:${newMinute}`);
+                };
+
+                return (
+                    <div className="flex items-center gap-2">
+                        <Select
+                            value={hour}
+                            onValueChange={value => handleTimeChange('hour', value)}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')).map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        :
+                        <Select
+                            value={minute}
+                            onValueChange={value => handleTimeChange('minute', value)}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )
+            }
 
             case 'datetime':
                 return (
-                    <input
+                    <Input
                         {...commonProps}
                         type="datetime"
                     />
@@ -209,7 +362,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
             case 'text':
             case 'email':
                 return (
-                    <input
+                    <Input
                         {...commonProps}
                         type={field.type}
                         minLength={field.validation?.minLength}
@@ -221,7 +374,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                 
             default:
                 return (
-                    <input
+                    <Input
                         {...commonProps}
                         type={field.type}
                         minLength={field.validation?.minLength}
@@ -277,20 +430,21 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                     </div>
                 ))}
 
-                <div className="col-span-full flex justify-end gap-4 mt-4">
-                    <Button
+                <div className="col-span-full flex justify-end gap-4 mt-6">
+                    <SubmitButton
+                        label="Cancelar"
+                        type="button"
+                        size="md"
+                        variant="secondary"
+                        onClick={handleCancel}
+                    />
+                    <SubmitButton
+                        label={isEdit ? 'Actualizar' : 'Crear'}
                         type="button"
                         size="md"
                         variant="primary"
-                        label={isEdit ? 'Actualizar' : 'Crear'}
                         disabled={processing}
                         onClick={handleSubmit}
-                    />
-                    <Button
-                        type="button"
-                        label="Cancelar"
-                        variant="secondary"
-                        onClick={handleCancel}
                     />
                 </div>
             </form>

@@ -33,7 +33,17 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = $request->user();
+
+        if ($user && $user->position) {
+            $allowedPositions = ['Administrador', 'Gerente', 'Recursos Humanos'];
+
+            if (in_array($user->position->nombre, $allowedPositions)) {
+                return redirect()->intended(route('dashboard', absolute: false));
+            }
+        }
+
+        return redirect()->route('scann-attendance');
     }
 
     /**

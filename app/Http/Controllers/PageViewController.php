@@ -113,7 +113,7 @@ class PageViewController extends Controller
                 ['name' => 'name', 'label' => 'Nombre', 'type' => 'text', 'required' => true],
                 ['name' => 'email', 'label' => 'Email', 'type' => 'text', 'required' => true],
                 ['name' => 'password', 'label' => 'Contraseña', 'type' => 'text', 'required' => false],
-                ['name' => 'qr_code_id', 'label' => 'Código QR', 'type' => 'select', 'required' => true],
+                ['name' => 'qr_code_id', 'label' => 'Código QR', 'type' => 'select', 'required' => false],
                 ['name' => 'company_id', 'label' => 'Compañía', 'type' => 'select', 'required' => true],
                 ['name' => 'department_id', 'label' => 'Departamento', 'type' => 'select', 'required' => true],
                 ['name' => 'position_id', 'label' => 'Cargo', 'type' => 'select', 'required' => true],
@@ -136,8 +136,8 @@ class PageViewController extends Controller
                 ['name' => 'latitude', 'label' => 'Latitud', 'type' => 'number', 'required' => false],
                 ['name' => 'longitude', 'label' => 'Longitud', 'type' => 'number', 'required' => false],
                 ['name' => 'status', 'label' => 'Tipo de registro', 'type' => 'select', 'required' => true, 'options' => [
-                    ['value' => 'entrada', 'label' => 'Entrada'],
-                    ['value' => 'salida', 'label' => 'Salida']
+                    ['value' => 'Entrada', 'label' => 'Entrada'],
+                    ['value' => 'Salida', 'label' => 'Salida']
                 ]],
                 ['name' => 'notas', 'label' => 'Notas', 'type' => 'text', 'required' => false],
                 ['name' => 'estado', 'label' => 'Activo', 'type' => 'checkbox', 'required' => false],
