@@ -39,6 +39,13 @@ class AttendanceController extends Controller
             ], 401);
         }
 
+        if ($user->qr_code_id !== $qrCode->id) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Este código QR no pertenece a tu usuario. Utiliza tu QR personal.'
+            ], 403);
+        }
+
         Log::info('QR recibido: ' . $validated['qr_code']);
         Log::info('ID QR encontrado: ' . ($qrCode ? $qrCode->id : 'Ninguno'));
         Log::info('Usuario encontrado: ' . ($user ? $user->name . ' (ID: ' . $user->id . ')' : 'Ninguno'));
