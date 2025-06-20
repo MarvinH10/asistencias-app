@@ -36,5 +36,14 @@ class DatabaseSeeder extends Seeder
             'department_id' => $department->id,
             'position_id' => $position->id,
         ]);
+
+        User::factory()->create([
+            'name' => 'Jhamil Crispin',
+            'email' => 'j99crispin@gmail.com',
+            'password' => Hash::make('Panchitoxd0'),
+            'company_id' => $company->id,
+            'department_id' => $department->id,
+            'position_id' => $position->id,
+        ]);
     }
 }

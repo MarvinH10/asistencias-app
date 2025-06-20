@@ -14,9 +14,9 @@ class QrCodeController extends Controller
      */
     public function index()
     {
-        $qrCode = QrCode::first();
+        $qrCodes = QrCode::all();
         return Inertia::render('qr-codes', [
-            'qrCode' => $qrCode
+            'qrCodes' => $qrCodes
         ]);
     }
 
@@ -34,19 +34,12 @@ class QrCodeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'qr_code' => 'required|string|max:255',
+            'qr_code' => 'required|string|max:255|unique:qr_codes,qr_code',
         ]);
 
-        $qr = QrCode::first();
-        if ($qr) {
-            $qr->update($validated);
-            $message = 'Código QR actualizado correctamente.';
-        } else {
-            QrCode::create($validated);
-            $message = 'Código QR creado correctamente.';
-        }
+        QrCode::create($validated);
 
-        return redirect()->route('qr-codes')->with('success', $message);
+        return redirect()->route('qr-codes')->with('success', 'Código QR creado correctamente.');
     }
 
     /**
@@ -75,7 +68,7 @@ class QrCodeController extends Controller
     public function update(Request $request, QrCode $qrCode)
     {
         $validated = $request->validate([
-            'qr_code' => 'required|string|max:255',
+            'qr_code' => 'required|string|max:255|unique:qr_codes,qr_code,' . $qrCode->id,
         ]);
 
         $qrCode->update($validated);

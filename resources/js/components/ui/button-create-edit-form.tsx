@@ -19,7 +19,7 @@ const Button: React.FC<ButtonProps> = ({
     size = 'md',
     disabled = false
 }) => {
-    const baseClasses = 'cursor-pointer font-medium flex items-center gap-1 rounded-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+    const baseClasses = 'cursor-pointer font-medium flex items-center justify-center gap-1 rounded-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
 
     const variantClasses = {
         primary: 'bg-neutral-400 hover:bg-neutral-500 text-white focus:ring-neutral-400',
@@ -37,9 +37,7 @@ const Button: React.FC<ButtonProps> = ({
         ? 'opacity-50 cursor-not-allowed hover:bg-current'
         : '';
 
-    const finalClassName = className
-        ? className
-        : `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses}`.trim();
+    const finalClassName = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses} ${className}`.trim();
 
     return (
         <button
