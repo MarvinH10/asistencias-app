@@ -219,8 +219,8 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
     );
 
     return (
-        <div className="flex h-full w-full flex-col items-center justify-center">
-            <div className="mx-auto flex w-full max-w-xs flex-grow flex-col items-center justify-center gap-4 pb-24">
+        <div className="relative flex h-full w-full flex-col items-center justify-center">
+            <div className="flex-grow w-full flex flex-col items-center justify-center gap-4">
                 {activeTab === 'scan' ? (
                     <>
                         {hasCameras ? (
@@ -311,6 +311,7 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
                     </div>
                 )}
             </div>
+            <div className="flex-shrink-0" style={{ height: '110px' }} />
             <TabButtons />
         </div>
     );
