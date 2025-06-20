@@ -232,7 +232,7 @@ const ScannerPage: React.FC = () => {
     return (
         <div className="h-screen overflow-hidden w-full bg-black bg-gradient-to-tl from-neutral-700 via-neutral-800 to-neutral-900 flex flex-col">
             <Head title="Escáner" />
-            <div className="flex-shrink-0 text-center w-full max-w-md pt-6 px-4">
+            <div className="flex-shrink-0 text-center w-full max-w-md pt-6 px-4 mx-auto">
                 <h1 className="text-2xl font-bold text-white mb-4">Escanee el código QR</h1>
 
                 {err && (

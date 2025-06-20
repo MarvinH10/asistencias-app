@@ -165,7 +165,7 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
     const hasCameras = cameras.length > 0;
 
     const TabButtons = () => (
-        <div className="fixed right-0 bottom-0 left-0 z-50 mx-auto mb-5 flex w-full max-w-xs rounded-2xl bg-[#1b1b1b] p-2 shadow-inner">
+        <div className="fixed right-0 bottom-0 left-0 z-50 mx-auto mb-4 flex w-full max-w-xs rounded-2xl bg-[#1b1b1b] p-2 shadow-inner">
             <button
                 type="button"
                 className={`flex-1 cursor-pointer rounded-xl py-5 text-base font-semibold transition-all duration-200 focus:outline-none ${
@@ -190,7 +190,7 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
     );
 
     const LinkButton = () => (
-        <div className="relative mt-6 mb-20 flex items-center justify-center">
+        <div className="relative mt-6 flex items-center justify-center">
             <div className="absolute top-1/2 left-1/2 h-[60px] w-[60px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1b1b1b] shadow-lg" />
             <div className="absolute top-1/2 left-1/2 h-[50px] w-[50px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-neutral-200 opacity-20" />
             <button
@@ -220,7 +220,7 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
 
     return (
         <div className="flex h-full w-full flex-col items-center justify-center">
-            <div className="mx-auto flex w-full max-w-xs flex-grow flex-col items-center justify-center gap-4">
+            <div className="mx-auto flex w-full max-w-xs flex-grow flex-col items-center justify-center gap-4 pb-24">
                 {activeTab === 'scan' ? (
                     <>
                         {hasCameras ? (
@@ -281,7 +281,7 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
                             <>
                                 <QRCode value="DEMO-QR" bgColor="transparent" fgColor="#fff" size={180} />
                                 <LinkButton />
-                                <p className="mb-24 max-w-xs text-center text-sm text-neutral-300 -mt-10">
+                                <p className="max-w-xs text-center text-sm text-neutral-300">
                                     No se detectaron cámaras, active los permisos o use la entrada manual.
                                 </p>
                             </>
