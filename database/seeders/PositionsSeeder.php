@@ -13,14 +13,10 @@ class PositionsSeeder extends Seeder
     public function run(): void
     {
         $positions = [
-            ['nombre' => 'Administrador',    'descripcion' => 'Acceso total al sistema'],
-            ['nombre' => 'Gerente',          'descripcion' => 'Supervisa operaciones generales'],
-            ['nombre' => 'Supervisor',       'descripcion' => 'Coordina y controla un equipo'],
-            ['nombre' => 'Vendedor',         'descripcion' => 'Vende productos'],
-            ['nombre' => 'Cajero',           'descripcion' => 'Cobra y gestiona pagos'],
-            ['nombre' => 'Mozo',             'descripcion' => 'Atiende mesas y toma pedidos'],
-            ['nombre' => 'Cocinero',         'descripcion' => 'Prepara alimentos'],
+            ['nombre' => 'Administrador', 'descripcion' => 'Acceso total al sistema'],
+            ['nombre' => 'Gerente', 'descripcion' => 'Supervisa operaciones generales'],
             ['nombre' => 'Recursos Humanos', 'descripcion' => 'Gestión de personal y nómina'],
+            ['nombre' => 'Empleado', 'descripcion' => 'Emplea para la empresa'],
         ];
 
         foreach ($positions as $pos) {

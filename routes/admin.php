@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageViewController;
 use App\Http\Controllers\Pages\QrCodeController;
+use App\Http\Middleware\CheckPosition;
 
 /**
  * Definición de páginas disponibles en el sistema
@@ -23,7 +24,7 @@ $pages = [
 /**
  * Grupo de rutas protegidas por autenticación
  */
-Route::middleware(['auth', 'verified'])->group(function () use ($pages) {
+Route::middleware(['auth', 'verified', CheckPosition::class])->group(function () use ($pages) {
     foreach ($pages as $page) {
         // Rutas principales (CRUD)
         Route::get($page, [PageViewController::class, 'index'])
