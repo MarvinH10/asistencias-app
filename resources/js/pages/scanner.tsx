@@ -47,152 +47,204 @@ const ScannerPage: React.FC = () => {
         }
     };
 
+    // Función para obtener la ubicación de forma independiente
+    const getLocation = useCallback(() => {
+        if (!navigator.geolocation) {
+            setLocationError('Este navegador no soporta geolocalización.');
+            setIsGettingLocation(false);
+            return Promise.reject(new Error('Geolocalización no soportada'));
+        }
+
+        return new Promise<{lat: string, lng: string}>((resolve, reject) => {
+            console.log('🔍 Solicitando permisos de geolocalización...');
+            setIsGettingLocation(true);
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toString();
+                    const lng = position.coords.longitude.toString();
+
+                    console.log(`✅ Ubicación obtenida: ${lat}, ${lng} (precisión: ${position.coords.accuracy}m)`);
+                    setCurrentLocation({ lat, lng });
+                    setIsGettingLocation(false);
+                    resolve({ lat, lng });
+                },
+                (error) => {
+                    console.error('❌ Error al obtener ubicación:', error);
+                    let errorMessage = 'No se pudo obtener la ubicación.';
+
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = 'Permiso de ubicación denegado.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = 'Información de ubicación no disponible.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = 'Tiempo de espera agotado para obtener ubicación.';
+                            break;
+                    }
+
+                    setLocationError(errorMessage);
+                    setIsGettingLocation(false);
+                    reject(new Error(errorMessage));
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000, // Aumentado a 15 segundos
+                    maximumAge: 0,
+                },
+            );
+        });
+    }, []);
+
     const handleCodeDetected = useCallback(
-        (code: string) => {
+        async (code: string) => {
+            console.log('🔍 Código QR detectado:', code);
             setLocationError(null);
 
-            const addRecord = (lat?: string, lng?: string) => {
-                registerAttendance(code, 'Entrada', lat, lng).then(() => {
+            // Función para registrar asistencia
+            const addRecord = async (lat?: string, lng?: string) => {
+                console.log('📝 Registrando asistencia con coordenadas:', lat, lng);
+                try {
+                    const result = await registerAttendance(code, 'Entrada', lat, lng);
+                    if (result.success) {
+                        console.log('✅ Asistencia registrada correctamente');
+                        toast.success(result.message || '¡Asistencia registrada correctamente!');
+                    } else {
+                        console.error('❌ Error al registrar asistencia:', result.error);
+                        toast.error(result.error || 'No se pudo registrar la asistencia.');
+                    }
+                } catch (error) {
+                    console.error('❌ Error en la petición de registro:', error);
+                    toast.error('Error de conexión al registrar asistencia');
+                } finally {
                     setIsGettingLocation(false);
-                });
-            };
-
-            if (currentLocation) {
-                addRecord(currentLocation.lat, currentLocation.lng);
-                return;
-            }
-
-            setIsGettingLocation(true);
-
-            const getLocationWithRetry = () => {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const lat = position.coords.latitude.toString();
-                            const lng = position.coords.longitude.toString();
-
-                            setCurrentLocation({ lat, lng });
-                            addRecord(lat, lng);
-                        },
-                        (error) => {
-                            console.error('Error de geolocalización:', error);
-                            let errorMessage = 'No se pudo obtener la ubicación. El registro se guardará sin latitud/longitud.';
-
-                            switch (error.code) {
-                                case error.PERMISSION_DENIED:
-                                    errorMessage = 'Permiso de ubicación denegado. El registro se guardará sin coordenadas.';
-                                    break;
-                                case error.POSITION_UNAVAILABLE:
-                                    errorMessage = 'Información de ubicación no disponible. El registro se guardará sin coordenadas.';
-                                    break;
-                                case error.TIMEOUT:
-                                    errorMessage = 'Tiempo de espera agotado para obtener ubicación. El registro se guardará sin coordenadas.';
-                                    break;
-                            }
-
-                            setLocationError(errorMessage);
-                            addRecord();
-                        },
-                        {
-                            enableHighAccuracy: true,
-                            timeout: 10000,
-                            maximumAge: 0,
-                        },
-                    );
-                } else {
-                    setLocationError('Este navegador no soporta geolocalización.');
-                    addRecord();
                 }
             };
 
-            getLocationWithRetry();
+            // Si ya tenemos ubicación, usarla directamente
+            if (currentLocation) {
+                console.log('📍 Usando ubicación guardada:', currentLocation);
+                await addRecord(currentLocation.lat, currentLocation.lng);
+                return;
+            }
+
+            // Intentar obtener ubicación con un timeout corto
+            console.log('🔍 Intentando obtener ubicación para QR detectado...');
+            setIsGettingLocation(true);
+            
+            try {
+                // Intentamos obtener la ubicación con un timeout de 5 segundos
+                const locationPromise = getLocation();
+                const timeoutPromise = new Promise<never>((_, reject) => {
+                    setTimeout(() => reject(new Error('Timeout obteniendo ubicación')), 5000);
+                });
+                
+                console.log('⏱️ Esperando ubicación con timeout de 5 segundos...');
+                const location = await Promise.race([locationPromise, timeoutPromise]);
+                
+                console.log('✅ Ubicación obtenida:', location);
+                await addRecord(location.lat, location.lng);
+            } catch (error) {
+                console.warn('⚠️ No se pudo obtener la ubicación:', error);
+                let errorMessage = 'No se pudo obtener la ubicación. El registro se guardará sin coordenadas.';
+                
+                if (error instanceof Error) {
+                    if (error.message.includes('denied')) {
+                        errorMessage = 'Permiso de ubicación denegado. El registro se guardará sin coordenadas.';
+                    } else if (error.message.includes('unavailable')) {
+                        errorMessage = 'Información de ubicación no disponible. El registro se guardará sin coordenadas.';
+                    } else if (error.message.includes('timeout')) {
+                        errorMessage = 'Tiempo de espera agotado para obtener ubicación. El registro se guardará sin coordenadas.';
+                    }
+                }
+                
+                setLocationError(errorMessage);
+                // Registrar sin coordenadas después de un breve retraso para permitir que el usuario vea el mensaje
+                setTimeout(async () => {
+                    await addRecord(); // Registrar sin coordenadas
+                }, 1000);
+            }
         },
-        [currentLocation],
+        [currentLocation, getLocation],
     );
 
+    // Función para activar/desactivar la cámara
     const handleCameraToggle = useCallback(() => {
+        console.log('🔄 Cambiando estado de cámara...');
         const newCameraState = !isCameraActive;
         setIsCameraActive(newCameraState);
         setLocationError(null);
 
+        // Si estamos activando la cámara y no tenemos ubicación, intentamos obtenerla
+        // pero no bloqueamos la activación de la cámara
         if (newCameraState && !currentLocation) {
-            setIsGettingLocation(true);
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const lat = position.coords.latitude.toString();
-                        const lng = position.coords.longitude.toString();
-
-                        console.log(`📍 Ubicación obtenida: ${lat}, ${lng} (precisión: ${position.coords.accuracy}m)`);
-                        setCurrentLocation({ lat, lng });
-                        setIsGettingLocation(false);
-                    },
-                    (error) => {
-                        console.error('❌ Error al obtener ubicación:', error);
-                        let errorMessage = 'No se pudo obtener la ubicación.';
-
-                        switch (error.code) {
-                            case error.PERMISSION_DENIED:
-                                errorMessage = 'Permiso de ubicación denegado.';
-                                break;
-                            case error.POSITION_UNAVAILABLE:
-                                errorMessage = 'Información de ubicación no disponible.';
-                                break;
-                            case error.TIMEOUT:
-                                errorMessage = 'Tiempo de espera agotado para obtener ubicación.';
-                                break;
-                        }
-
-                        setLocationError(errorMessage);
-                        setIsGettingLocation(false);
-                    },
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0,
-                    },
-                );
-            } else {
-                setLocationError('Este navegador no soporta geolocalización.');
-                setIsGettingLocation(false);
-            }
+            console.log('📍 Solicitando ubicación en segundo plano...');
+            // Usar setTimeout para asegurar que la activación de la cámara no se bloquee
+            setTimeout(() => {
+                getLocation().catch(err => {
+                    console.warn('⚠️ No se pudo obtener la ubicación, pero la cámara seguirá funcionando:', err.message);
+                    // No bloqueamos la activación de la cámara si falla la geolocalización
+                });
+            }, 500);
         }
-    }, [isCameraActive, currentLocation]);
+    }, [isCameraActive, currentLocation, getLocation]);
 
     const handleRegister = async (code: string) => {
+        console.log('📝 Iniciando registro de asistencia con código:', code);
         let lat = currentLocation?.lat;
         let lng = currentLocation?.lng;
         let result;
-        setIsGettingLocation(true);
+        
         try {
+            // Si no tenemos ubicación, intentamos obtenerla pero con un timeout más corto
             if (!lat || !lng) {
-                await new Promise((resolve) => {
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                            (position) => {
-                                lat = position.coords.latitude.toString();
-                                lng = position.coords.longitude.toString();
-                                setCurrentLocation({ lat, lng });
-                                resolve(null);
-                            },
-                            () => resolve(null),
-                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-                        );
-                    } else {
-                        resolve(null);
-                    }
-                });
+                console.log('🔍 No hay ubicación guardada, intentando obtenerla...');
+                setIsGettingLocation(true);
+                
+                try {
+                    // Intentamos obtener la ubicación con un timeout más corto (3 segundos)
+                    const locationPromise = getLocation();
+                    const timeoutPromise = new Promise<never>((_, reject) => {
+                        setTimeout(() => reject(new Error('Timeout obteniendo ubicación')), 3000);
+                    });
+                    
+                    console.log('⏱️ Esperando ubicación con timeout de 3 segundos...');
+                    const location = await Promise.race([locationPromise, timeoutPromise]);
+                    
+                    lat = location.lat;
+                    lng = location.lng;
+                    console.log('✅ Ubicación obtenida para el registro:', lat, lng);
+                } catch (locationError) {
+                    console.warn('⚠️ No se pudo obtener la ubicación para el registro:', locationError);
+                    // Mostramos un mensaje pero continuamos sin ubicación
+                    toast.info('Registrando sin ubicación. Para mejor precisión, intente nuevamente permitiendo el acceso a la ubicación.');
+                } finally {
+                    setIsGettingLocation(false);
+                }
             }
+            
+            // Registramos la asistencia con o sin ubicación
+            console.log('📤 Enviando registro al servidor con coordenadas:', lat, lng);
             result = await registerAttendance(code, 'Entrada', lat, lng);
+            console.log('📥 Respuesta del servidor:', result);
+        } catch (error) {
+            console.error('❌ Error en el proceso de registro:', error);
+            result = {
+                success: false,
+                error: 'Error en el proceso de registro: ' + (error instanceof Error ? error.message : String(error))
+            };
         } finally {
             setIsGettingLocation(false);
         }
+        
         if (result?.success) {
             toast.success(result.message || '¡Se ha registrado correctamente!');
         } else {
             toast.error(result?.error || 'No se pudo registrar la asistencia.');
         }
+        
         return result;
     };
 
@@ -213,23 +265,55 @@ const ScannerPage: React.FC = () => {
             <div className="mx-auto max-w-2xl px-4">
                 <div className="mb-8 text-center mt-6">
                     <h1 className="mb-8 text-2xl font-bold text-white">Escanee el código QR</h1>
+                    
+                    {/* Botón para activar la cámara cuando no está activa */}
+                    {!isCameraActive && (
+                        <div className="mb-6 flex flex-col items-center justify-center">
+                            <button
+                                onClick={handleCameraToggle}
+                                className="mb-4 rounded-lg bg-gradient-to-tr from-neutral-700 to-neutral-500 px-6 py-3 font-semibold text-white shadow hover:brightness-110 transition-all duration-300 transform hover:scale-105"
+                            >
+                                <div className="flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                                    </svg>
+                                    Activar Cámara
+                                </div>
+                            </button>
+                            <p className="text-sm text-neutral-300">Haga clic para iniciar el escáner de QR</p>
+                        </div>
+                    )}
+                    
+                    {/* Mensaje de error de ubicación */}
                     {locationError && (
-                        <div>
-                            <div className="mb-4 rounded border border-yellow-300 bg-yellow-100 p-2 text-yellow-800">{locationError}</div>
+                        <div className="mb-4">
+                            <div className="mb-4 rounded-lg border border-yellow-300 bg-yellow-100 p-3 text-yellow-800 shadow-md">{locationError}</div>
                             <button
                                 onClick={() => {
                                     setLocationError(null);
-                                    setIsGettingLocation(true);
+                                    getLocation().catch(err => {
+                                        console.warn('No se pudo obtener ubicación:', err);
+                                    });
                                 }}
-                                className="mt-2 rounded bg-yellow-400 px-4 py-2 font-bold text-white"
+                                className="mt-2 rounded-lg bg-yellow-400 px-4 py-2 font-bold text-white shadow-md hover:bg-yellow-500 transition-colors duration-300"
                             >
-                                Intentar de nuevo
+                                Intentar obtener ubicación
                             </button>
                         </div>
                     )}
+                    
+                    {/* Indicador de carga mientras se obtiene la ubicación */}
+                    {isGettingLocation && (
+                        <div className="mb-4 flex items-center justify-center p-2 bg-black bg-opacity-20 rounded-lg">
+                            <div className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                            <span className="text-sm text-white">Obteniendo ubicación...</span>
+                        </div>
+                    )}
+                    
+                    {/* Componente de escáner QR */}
                     <QRCapture
                         onCodeDetected={isGettingLocation ? () => {} : (code) => handleCodeDetected(code)}
-                        isActive={isCameraActive && !isGettingLocation}
+                        isActive={isCameraActive}
                         onToggle={handleCameraToggle}
                         onRegister={handleRegister}
                     />
