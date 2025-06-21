@@ -237,6 +237,12 @@ class PageViewController extends Controller
         $key = Str::before($request->route()->getName(), '.create');
         $page = $key;
 
+        $attendanceMethodsQuery = AttendanceMethod::where('estado', true);
+
+        if ($key === 'attendance-records') {
+            $attendanceMethodsQuery->where('clave', 'MANUAL');
+        }
+
         return Inertia::render("{$page}/create", [
             'title' => $this->traducirClave($key),
             'urlView' => "/{$key}",
@@ -246,7 +252,7 @@ class PageViewController extends Controller
             'parents' => Department::where('estado', true)->select('id', 'nombre')->get(),
             'positions' => Position::where('estado', true)->select('id', 'nombre')->get(),
             'departments' => Department::where('estado', true)->select('id', 'nombre')->get(),
-            'attendanceMethods' => AttendanceMethod::where('estado', true)->select('id', 'nombre')->get(),
+            'attendanceMethods' => $attendanceMethodsQuery->select('id', 'nombre', 'clave')->get(),
             'users' => User::where('estado', true)->select('id', 'name')->get(),
             'shifts' => Shift::where('estado', true)->select('id', 'nombre')->get(),
             'qrCodes' => QrCode::select('id', 'qr_code')->get(),
@@ -295,10 +301,10 @@ class PageViewController extends Controller
             'fields' => $this->getFieldsSchema($key),
             'initialData' => $record,
             'companies' => Company::where('estado', true)->when($record->company_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'razon_social')->get(),
-            'parents' => Department::where('estado', true)->when($record->parent_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'nombre')->get(),
+            'parents' => Department::where('estado', true)->when($record->parent_id, fn($q, $id) => $q->orWhere('id', 'id'))->select('id', 'nombre')->get(),
             'positions' => Position::where('estado', true)->when($record->position_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'nombre')->get(),
             'departments' => Department::where('estado', true)->when($record->department_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'nombre')->get(),
-            'attendanceMethods' => AttendanceMethod::where('estado', true)->when($record->attendance_method_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'nombre')->get(),
+            'attendanceMethods' => AttendanceMethod::where('estado', true)->when($record->attendance_method_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'nombre', 'clave')->get(),
             'users' => $usersQuery->select('id', 'name')->get(),
             'shifts' => Shift::where('estado', true)->select('id', 'nombre')->get(),
             'qrCodes' => QrCode::select('id', 'qr_code')->get(),

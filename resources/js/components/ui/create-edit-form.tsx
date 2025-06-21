@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm, router } from '@inertiajs/react';
 import {default as SubmitButton} from '@/components/ui/button-create-edit-form';
 import { Button } from '@/components/ui/button';
-import type { CreateEditFormProps, FormField } from '@/types/components/ui/form';
+import type { CreateEditFormProps as OriginalCreateEditFormProps, FormField } from '@/types/components/ui/form';
 import { Switch } from "@/components/ui/switch"
 import {
     Select,
@@ -21,6 +21,16 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
 type FormValue = string | number | boolean | File | null;
+
+interface AttendanceMethod {
+    id: number;
+    nombre: string;
+    clave: string;
+}
+
+interface CreateEditFormProps extends OriginalCreateEditFormProps {
+    attendanceMethods?: AttendanceMethod[];
+}
 
 function toDatetimeLocal(value: string | null | undefined): string {
     if (!value) return '';
@@ -52,15 +62,24 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
     className = '',
     onSubmit,
     onCancel,
+    attendanceMethods = [],
 }) => {
-    const { data, setData, errors, processing, post, put } = useForm<Record<string, FormValue>>(
-        isEdit
+    const getInitialData = () => {
+        const initialFormState: Record<string, FormValue> = isEdit
             ? { ...initialData }
-            : Object.fromEntries(fields.map(f => [
-                f.name,
-                f.type === 'checkbox' ? true : ''
-            ] as [string, FormValue]))
-    );
+            : Object.fromEntries(fields.map(f => [f.name, f.type === 'checkbox' ? true : '']));
+
+        if (!isEdit && title === 'Registro de asistencia' && attendanceMethods.length > 0) {
+            const manualMethod = attendanceMethods.find(m => m.clave === 'MANUAL');
+            if (manualMethod) {
+                initialFormState['attendance_method_id'] = manualMethod.id;
+            }
+        }
+        
+        return initialFormState;
+    };
+
+    const { data, setData, errors, processing, post, put } = useForm<Record<string, FormValue>>(getInitialData());
 
     const recordId = isEdit ? (data.id as string | number | undefined) : undefined;
 
@@ -95,6 +114,12 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
             router.visit(urlView);
         }
     };
+
+    const selectedAttendanceMethodId = data['attendance_method_id'];
+    const selectedMethod = attendanceMethods.find(m => String(m.id) === String(selectedAttendanceMethodId));
+    const isManualMethod = selectedMethod?.clave === 'MANUAL';
+
+    const conditionalFields = ['ip_address', 'qr_token', 'latitude', 'longitude'];
 
     const renderField = (field: FormField) => {
         const getFieldValue = (fieldName: string): string => {
@@ -382,7 +407,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
     };
 
     const checkboxFields = fields.filter(f => f.type === 'checkbox');
-    const otherFields = fields.filter(f => f.type !== 'checkbox');
+    const otherFields = fields.filter(f => f.type !== 'checkbox' && (!isManualMethod || !conditionalFields.includes(f.name)));
 
     return (
         <div className={`${className} bg-white dark:bg-neutral-900 rounded-lg`}>

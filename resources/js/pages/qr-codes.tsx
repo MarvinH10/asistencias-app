@@ -107,8 +107,12 @@ export default function QrCodes() {
         e.preventDefault();
         if (editingId) {
             router.put(`/qr-codes/${editingId}`, { qr_code: editValue }, {
-                onSuccess: () => handleEditCancel(),
-                onError: () => { /* Flash messages will handle this */ },
+                onSuccess: () => {
+                    window.location.href = '/qr-codes?edit_success=true';
+                },
+                onError: () => {
+                    handleEditCancel();
+                },
             });
         }
     };

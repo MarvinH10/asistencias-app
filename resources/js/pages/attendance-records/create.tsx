@@ -4,18 +4,34 @@ import CreateEditForm from '@/components/ui/create-edit-form';
 import type { FormField } from '@/types/components/ui/form';
 import type { PageProps } from '@inertiajs/core';
 
+interface AttendanceMethod {
+    id: number;
+    nombre: string;
+    clave: string;
+}
+
 interface Props extends PageProps {
     title: string;
     urlView: string;
     breadcrumb?: string;
     fields: FormField[];
-    attendanceMethods: { id: number; nombre: string }[];
+    attendanceMethods: AttendanceMethod[];
     users: { id: number; name: string }[];
 }
 
 export default function AttendanceRecordsCreate() {
     const { props } = usePage<Props>();
     const { title, urlView, breadcrumb, fields, attendanceMethods, users } = props;
+
+    const fieldsWithOptions = fields.map(field => {
+        if (field.name === 'user_id') {
+            return { ...field, options: users.map(u => ({ value: String(u.id), label: u.name })) };
+        }
+        if (field.name === 'attendance_method_id') {
+            return { ...field, options: attendanceMethods.map(a => ({ value: String(a.id), label: a.nombre })) };
+        }
+        return field;
+    });
 
     return (
         <AppLayout>
@@ -27,23 +43,8 @@ export default function AttendanceRecordsCreate() {
                     breadcrumb={breadcrumb}
                     initialData={null}
                     isEdit={false}
-                    fields={[
-                        ...fields.filter(f => f.name !== 'user_id' && f.name !== 'attendance_method_id'),
-                        {
-                            name: 'user_id',
-                            label: 'Usuario',
-                            type: 'select',
-                            required: true,
-                            options: (users ?? []).map(u => ({ value: String(u.id), label: u.name })),
-                        },
-                        {
-                            name: 'attendance_method_id',
-                            label: 'Método de Marcado',
-                            type: 'select',
-                            required: true,
-                            options: (attendanceMethods ?? []).map(a => ({ value: String(a.id), label: a.nombre })),
-                        },
-                    ]}
+                    fields={fieldsWithOptions}
+                    attendanceMethods={attendanceMethods}
                     className="p-4"
                 />
             </div>
