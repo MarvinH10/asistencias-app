@@ -1,13 +1,12 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage, router } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import PagesData from '@/components/pages-data';
 import type { Column } from '@/types/components/ui/table';
 import type { PageProps } from '@inertiajs/core';
 import type { Company } from '@/types/pages/company';
 import { useTableActions } from '@/hooks/use-table-actions';
 import Button from '@/components/ui/button-create-edit-form';
-import { toast } from 'react-toastify';
 
 interface CompaniesPageProps extends PageProps {
     companies: Company[];
@@ -47,20 +46,6 @@ export default function Companies() {
         entityDisplayName: 'compañía',
         entityDisplayNamePlural: 'compañías',
         routes,
-        onSuccess: (action) => {
-            if (action === 'delete') {
-                router.reload({ only: ['companies'] });
-            } else if (action === 'duplicate') {
-                router.reload({ only: ['companies'] });
-            }
-        },
-        onError: (action) => {
-            let msg = 'Ocurrió un error.';
-            if (action === 'export') msg = 'Error al exportar las compañías';
-            else if (action === 'duplicate') msg = 'Error al duplicar las compañías';
-            else if (action === 'delete') msg = 'Error al eliminar las compañías';
-            toast.error(msg);
-        },
     });
 
     const columns: Column<Company>[] = [

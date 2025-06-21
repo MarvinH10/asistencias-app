@@ -23,5 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->reportable(function (\Throwable $e) {
+            if (app()->environment('local')) {
+                return;
+            }
+
+            if (in_array(request()->method(), ['PUT', 'PATCH', 'DELETE'])) {
+                return back()->with('error', 'Ocurrió un error al procesar la solicitud. Por favor, inténtelo de nuevo.');
+            }
+        });
     })->create();

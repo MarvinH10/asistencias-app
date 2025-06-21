@@ -7,6 +7,7 @@ use App\Models\Company;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Controllers\Controller;
+use Illuminate\Database\QueryException;
 
 class DepartmentController extends Controller
 {
@@ -157,9 +158,20 @@ class DepartmentController extends Controller
             return back()->with('error', 'No se seleccionaron departamentos para eliminar.');
         }
 
-        Department::whereIn('id', $ids)->delete();
+        if (Department::whereIn('parent_id', $ids)->exists()) {
+            return redirect()->back()->with('error', 'No se puede eliminar. Uno o más departamentos son padres de otros.');
+        }
 
-        return back()->with('success', 'Departamentos eliminadas exitosamente.');
+        try {
+            Department::whereIn('id', $ids)->delete();
+        } catch (QueryException $e) {
+            if ($e->getCode() === '23000') {
+                return redirect()->back()->with('error', 'No se puede eliminar. Al menos uno de los departamentos seleccionados está en uso.');
+            }
+            return redirect()->back()->with('error', 'Un error de base de datos impidió la eliminación.');
+        }
+
+        return back()->with('success', 'Departamentos eliminados exitosamente.');
     }
 
     public static function getDepartmentFormOptions($excludeId = null)

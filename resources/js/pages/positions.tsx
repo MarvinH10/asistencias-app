@@ -1,13 +1,12 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage, router } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import PagesData from '@/components/pages-data';
 import type { Column } from '@/types/components/ui/table';
 import type { PageProps } from '@inertiajs/core';
 import type { Position } from '@/types/pages/position';
 import { useTableActions } from '@/hooks/use-table-actions';
 import Button from '@/components/ui/button-create-edit-form';
-import { toast } from 'react-toastify';
 
 interface PositionsPageProps extends PageProps {
     positions: Position[];
@@ -50,20 +49,6 @@ export default function Position() {
         entityDisplayName: 'cargo',
         entityDisplayNamePlural: 'cargos',
         routes,
-        onSuccess: (action) => {
-            if (action === 'delete') {
-                router.reload({ only: ['position'] });
-            } else if (action === 'duplicate') {
-                router.reload({ only: ['position'] });
-            }
-        },
-        onError: (action) => {
-            let msg = 'Ocurrió un error.';
-            if (action === 'export') msg = 'Error al exportar las departamentos';
-            else if (action === 'duplicate') msg = 'Error al duplicar las departamentos';
-            else if (action === 'delete') msg = 'Error al eliminar las departamentos';
-            toast.error(msg);
-        },
     });
 
     const columns: Column<Position>[] = [

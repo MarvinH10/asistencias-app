@@ -1,13 +1,12 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage, router } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import PagesData from '@/components/pages-data';
 import type { Column } from '@/types/components/ui/table';
 import type { PageProps } from '@inertiajs/core';
 import type { Shift } from '@/types/pages/shift';
 import { useTableActions } from '@/hooks/use-table-actions';
 import Button from '@/components/ui/button-create-edit-form';
-import { toast } from 'react-toastify';
 
 interface ShiftsPageProps extends PageProps {
     shifts: Shift[];
@@ -48,20 +47,6 @@ export default function Department() {
         entityDisplayName: 'turno',
         entityDisplayNamePlural: 'turnos',
         routes,
-        onSuccess: (action) => {
-            if (action === 'delete') {
-                router.reload({ only: ['shift'] });
-            } else if (action === 'duplicate') {
-                router.reload({ only: ['shift'] });
-            }
-        },
-        onError: (action) => {
-            let msg = 'Ocurrió un error.';
-            if (action === 'export') msg = 'Error al exportar los turnos';
-            else if (action === 'duplicate') msg = 'Error al duplicar los turnos';
-            else if (action === 'delete') msg = 'Error al eliminar los turnos';
-            toast.error(msg);
-        },
     });
 
     const columns: Column<Shift>[] = [

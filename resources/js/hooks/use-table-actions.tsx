@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 import { router } from '@inertiajs/react';
-import { toast } from 'react-toastify';
 import {
     Dialog,
     DialogContent,
@@ -52,9 +51,8 @@ export function useTableActions<T extends { id: string | number }>({
     const handleExport = useCallback((selectedIds: (string | number)[]) => {
         const url = `${routes.export}?ids[]=${selectedIds.join('&ids[]=')}`;
         window.open(url, '_blank');
-        toast.success(`${selectedIds.length} ${entityDisplayNamePlural} exportados exitosamente.`);
         onSuccess?.('export', selectedIds);
-    }, [entityDisplayNamePlural, onSuccess, routes.export]);
+    }, [onSuccess, routes.export]);
 
     const handleDuplicate = useCallback(async (selectedIds: (string | number)[]) => {
         try {
@@ -66,25 +64,17 @@ export function useTableActions<T extends { id: string | number }>({
                         onSuccess?.('duplicate', selectedIds);
                     },
                     onError: (errors: Record<string, string>) => {
-                        const count = selectedIds.length;
-                        const errorMessage = errors?.message || `Error al duplicar ${count} ${entityDisplayNamePlural}`;
-                        toast.error(errorMessage);
                         onError?.('duplicate', errors);
                     }
                 });
             } else {
-                toast.error(`Ruta de duplicación no configurada para ${entityDisplayNamePlural}`);
+                console.error(`Ruta de duplicación no configurada para ${entityDisplayNamePlural}`);
             }
         } catch (error) {
-            const count = selectedIds.length;
-            const errorMessage = count === 1
-                ? `Error al duplicar 1 ${entityDisplayName}`
-                : `Error al duplicar ${count} ${entityDisplayNamePlural}`;
-            toast.error(errorMessage);
             console.error(`Error duplicating ${entityDisplayNamePlural}:`, error);
             onError?.('duplicate', error);
         }
-    }, [entityDisplayName, entityDisplayNamePlural, routes.duplicate, onSuccess, onError]);
+    }, [entityDisplayNamePlural, routes.duplicate, onSuccess, onError]);
 
     const handleDelete = useCallback(async (selectedIds: (string | number)[]) => {
         try {
@@ -111,7 +101,7 @@ export function useTableActions<T extends { id: string | number }>({
 
     const confirmDelete = useCallback(async () => {
         try {
-            const { selectedIds, count } = deleteConfirmation;
+            const { selectedIds } = deleteConfirmation;
 
             if (routes.delete) {
                 router.delete(routes.delete, {
@@ -121,17 +111,6 @@ export function useTableActions<T extends { id: string | number }>({
                         setDeleteConfirmation({ isOpen: false, selectedIds: [], message: '', count: 0 });
                     },
                     onError: (errors: Record<string, string>) => {
-                        const serverMessage = errors?.message;
-                        
-                        if (serverMessage && typeof serverMessage === 'string') {
-                            toast.error(serverMessage);
-                        } else {
-                            const genericErrorMessage = count === 1
-                                ? `Error al eliminar 1 ${entityDisplayName}`
-                                : `Error al eliminar ${count} ${entityDisplayNamePlural}`;
-                            toast.error(genericErrorMessage);
-                        }
-                        
                         onError?.('delete', errors);
                         setDeleteConfirmation({ isOpen: false, selectedIds: [], message: '', count: 0 });
                     }
@@ -145,8 +124,7 @@ export function useTableActions<T extends { id: string | number }>({
             const errorMessage = count === 1
                 ? `Error al eliminar 1 ${entityDisplayName}`
                 : `Error al eliminar ${count} ${entityDisplayNamePlural}`;
-            toast.error(errorMessage);
-            console.error(`Error deleting ${entityDisplayNamePlural}:`, error);
+            console.error(errorMessage);
             onError?.('delete', error);
             setDeleteConfirmation({ isOpen: false, selectedIds: [], message: '', count: 0 });
         }
@@ -160,14 +138,14 @@ export function useTableActions<T extends { id: string | number }>({
         if (routes.edit) {
             router.visit(routes.edit.replace(':id', String(item.id)), {
                 onError: (error) => {
-                    toast.error(`Error al acceder a la edición de ${entityDisplayName}`);
+                    console.error(`Error al acceder a la edición de ${entityDisplayName}`);
                     onError?.('edit', error);
                 }
             });
         } else if (routes.show) {
             router.visit(routes.show.replace(':id', String(item.id)), {
                 onError: (error) => {
-                    toast.error(`Error al acceder a los detalles de ${entityDisplayName}`);
+                    console.error(`Error al acceder a los detalles de ${entityDisplayName}`);
                     onError?.('show', error);
                 }
             });
@@ -178,7 +156,7 @@ export function useTableActions<T extends { id: string | number }>({
         if (routes.create) {
             router.visit(routes.create, {
                 onError: (error) => {
-                    toast.error(`Error al acceder a la creación de ${entityDisplayName}`);
+                    console.error(`Error al acceder a la creación de ${entityDisplayName}`);
                     onError?.('create', error);
                 }
             });
