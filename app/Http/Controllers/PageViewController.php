@@ -108,6 +108,9 @@ class PageViewController extends Controller
                 ['name' => 'nombre', 'label' => 'Nombre', 'type' => 'text', 'required' => true],
                 ['name' => 'descripcion', 'label' => 'Descripción', 'type' => 'text', 'required' => false],
                 ['name' => 'estado', 'label' => 'Activo', 'type' => 'checkbox', 'required' => false],
+                ['name' => 'company_id', 'label' => 'Compañía', 'type' => 'select', 'required' => true],
+                ['name' => 'department_id', 'label' => 'Departamento', 'type' => 'select', 'required' => false],
+                ['name' => 'parent_id', 'label' => 'Cargo Padre', 'type' => 'select', 'required' => false],
             ],
             'users' => [
                 ['name' => 'name', 'label' => 'Nombre', 'type' => 'text', 'required' => true],

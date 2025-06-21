@@ -84,6 +84,24 @@ export default function Position() {
             sortable: true,
         },
         {
+            key: 'company',
+            header: 'Compañía',
+            sortable: true,
+            render: (_, row) => row.company?.razon_social || '-',
+        },
+        {
+            key: 'department',
+            header: 'Departamento',
+            sortable: true,
+            render: (_, row) => row.department?.nombre || '-',
+        },
+        {
+            key: 'parent',
+            header: 'Cargo Padre',
+            sortable: true,
+            render: (_, row) => row.parent?.nombre || '-',
+        },
+        {
             key: 'estado',
             header: 'Estado',
             sortable: true,
