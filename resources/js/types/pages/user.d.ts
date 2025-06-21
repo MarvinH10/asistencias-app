@@ -10,7 +10,7 @@ export interface User {
     fecha_ingreso: string;
     fecha_retiro: string;
     fecha_cumpleanos?: string | null;
-    imei_mac?: string | null;
+    device_uid?: string | null;
     firma_digital?: string | null;
     dni: string;
     estado: boolean;

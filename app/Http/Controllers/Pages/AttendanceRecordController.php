@@ -94,7 +94,7 @@ class AttendanceRecordController extends Controller
 
         $attendanceRecord->update($validated);
 
-        return redirect()->route('attendance-records.index')->with('success', 'Registro de asistencia actualizado exitosamente.');
+        return redirect()->route('attendance-records.index');
     }
 
     /**

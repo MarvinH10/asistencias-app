@@ -27,7 +27,7 @@ class User extends Authenticatable
         'fecha_ingreso',
         'fecha_retiro',
         'fecha_cumpleanos',
-        'imei_mac',
+        'device_uid',
         'firma_digital',
         'dni',
         'estado',

@@ -73,7 +73,7 @@ class QrCodeController extends Controller
 
         $qrCode->update($validated);
 
-        return redirect()->route('qr-codes')->with('success', 'Código QR actualizado exitosamente.');
+        return redirect()->route('qr-codes');
     }
 
     /**

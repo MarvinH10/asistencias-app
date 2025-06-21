@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Folder, LayoutGrid, Users, Building, Building2, UserPlus, ScanFace, Calendar, CalendarCheck, Clock, QrCode } from 'lucide-react';
+import { Folder, LayoutGrid, Users, Building, Building2, UserPlus, ScanFace, Calendar, CalendarCheck, Clock, QrCode, ScanLine } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -61,6 +61,11 @@ const mainNavItems: NavItem[] = [
 ];
 
 const footerNavItems: NavItem[] = [
+    {
+        title: 'Registre su asistencia',
+        href: '/scann-attendance',
+        icon: ScanLine,
+    },
     {
         title: 'Repositorio',
         href: 'https://github.com/MarvinH10/asistencias-app',

@@ -32,7 +32,7 @@ return new class extends Migration {
                 ->constrained('positions')
                 ->onDelete('set null');
             $table->date('fecha_cumpleanos')->nullable();
-            $table->string('imei_mac', 100)->nullable();
+            $table->string('device_uid', 100)->nullable();
             $table->string('firma_digital')->nullable();
             $table->string('dni', 20);
             $table->date('fecha_ingreso')->nullable();
