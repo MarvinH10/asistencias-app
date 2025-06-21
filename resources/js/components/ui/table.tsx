@@ -142,7 +142,37 @@ function Table<T extends { id: string | number }>({
             : visibleSelectedCount > 0 && visibleSelectedCount < visibleIds.length;
 
     return (
-        <div className={`rounded-lg dark:bg-neutral-800 pt-2`}>
+        <div className={`rounded-lg dark:bg-neutral-800`}>
+            <div className="px-4 flex flex-wrap items-center justify-end gap-3 border-b border-neutral-200 dark:border-neutral-700">
+                <span className="text-sm font-medium text-[#6a7282] whitespace-nowrap">
+                    {isLoading ? "Cargando..." : `${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, sortedData.length)} de ${sortedData.length}`}
+                </span>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() =>
+                            currentPage === 1
+                                ? goLast()
+                                : setCurrentPage((p) => Math.max(p - 1, 1))
+                        }
+                        disabled={totalPages <= 1 || isLoading}
+                        className="p-1 cursor-pointer rounded hover:bg-gray-100 disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-default"
+                    >
+                        <ChevronLeft />
+                    </button>
+                    <button
+                        onClick={() =>
+                            currentPage === totalPages
+                                ? goFirst()
+                                : setCurrentPage((p) => Math.min(p + 1, totalPages))
+                        }
+                        disabled={totalPages <= 1 || isLoading}
+                        className="p-1 cursor-pointer rounded hover:bg-gray-100 disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-default"
+                    >
+                        <ChevronRight />
+                    </button>
+                </div>
+            </div>
+            
             <div className={`overflow-x-auto border-b border-neutral-200 dark:border-neutral-700`}>
                 <table className={`min-w-full divide-y ${appearance === 'dark' ? 'divide-gray-700' : 'divide-gray-200'}`}>
                     <thead className={`font-bold text-neutral-700 dark:text-neutral-100`}>
@@ -307,33 +337,6 @@ function Table<T extends { id: string | number }>({
                         )}
                     </tbody>
                 </table>
-            </div>
-            <div className="px-4 py-4 flex items-center justify-end gap-3">
-                <span className="text-sm font-medium text-[#6a7282]">
-                    {isLoading ? "Cargando..." : `${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, sortedData.length)} de ${sortedData.length}`}
-                </span>
-                <button
-                    onClick={() =>
-                        currentPage === 1
-                            ? goLast()
-                            : setCurrentPage((p) => Math.max(p - 1, 1))
-                    }
-                    disabled={totalPages <= 1 || isLoading}
-                    className="p-1 cursor-pointer rounded hover:bg-gray-100 disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-default"
-                >
-                    <ChevronLeft />
-                </button>
-                <button
-                    onClick={() =>
-                        currentPage === totalPages
-                            ? goFirst()
-                            : setCurrentPage((p) => Math.min(p + 1, totalPages))
-                    }
-                    disabled={totalPages <= 1 || isLoading}
-                    className="p-1 cursor-pointer rounded hover:bg-gray-100 disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-default"
-                >
-                    <ChevronRight />
-                </button>
             </div>
         </div>
     );

@@ -163,103 +163,13 @@ function PagesData<T extends { id: string | number }>({
 
     return (
         <section>
-            <div className="mb-4">
+            <div className="-mb-3">
                 <div className="-mb-1 text-center sm:text-left">
                     <h2 className="text-2xl font-semibold">{title}</h2>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div className="text-center sm:text-left">
                         {breadcrumb && <div className="items-center text-sm text-[#6a7282]">{breadcrumb}</div>}
-                    </div>
-                    <div className="mt-2 mb-2 flex flex-1 justify-end">
-                        <Input
-                            type="text"
-                            placeholder="Escribe para buscar..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full sm:max-w-[300px]"
-                        />
-                    </div>
-                    <div className="mt-1 flex flex-1 justify-center">
-                        {selectedRows.size > 0 && (
-                            <div className="flex items-center gap-3">
-                                {allPagesSelected ? (
-                                    <>
-                                        <div className="flex items-center gap-3 rounded-sm border border-gray-600 bg-gray-200 px-3 py-[6.6px]">
-                                            <span className="text-[14px] font-medium text-[#6a7282]">Todos {data.length} seleccionados</span>
-                                            <button
-                                                onClick={handleClearSelection}
-                                                className="cursor-pointer text-[#6a7282] hover:text-gray-800"
-                                                aria-label="Clear selection"
-                                            >
-                                                <X size={20} />
-                                            </button>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="flex items-center gap-3 rounded-sm border border-gray-600 bg-gray-200 px-3 py-1.5">
-                                            <span className="text-[14px] font-medium text-[#6a7282]">
-                                                {selectedRows.size} seleccionado{selectedRows.size > 1 ? 's' : ''}
-                                            </span>
-                                            {shouldShowSelectAll && (
-                                                <button
-                                                    onClick={handleSelectAll}
-                                                    className="flex cursor-pointer items-center gap-1 rounded-sm bg-gray-500 px-3 py-[2px] text-[13px] font-medium text-white hover:bg-gray-600"
-                                                >
-                                                    Seleccionar todos ({data.length})
-                                                </button>
-                                            )}
-                                            <button
-                                                onClick={handleClearSelection}
-                                                className="cursor-pointer text-[#6a7282] hover:text-gray-800"
-                                                aria-label="Clear selection"
-                                            >
-                                                <X size={20} />
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
-
-                                <div className="relative inline-block" ref={actionsRef}>
-                                    <button
-                                        onClick={() => setIsActionsOpen((prev) => !prev)}
-                                        className={`flex cursor-pointer items-center gap-1 rounded-sm bg-gray-200 px-3 py-1.5 text-sm text-[#6a7282] hover:bg-gray-300 ${isActionsOpen ? 'border border-gray-600' : 'border border-gray-200'}`}
-                                    >
-                                        <Cog size={16} />
-                                        Acciones
-                                    </button>
-                                    {isActionsOpen && (
-                                        <div className="absolute -right-[95px] z-10 mt-2 w-48 rounded-sm border border-gray-300 bg-white shadow-lg">
-                                            {onExport && (
-                                                <button
-                                                    onClick={() => handleAction('export')}
-                                                    className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-[#6a7282] hover:bg-gray-100"
-                                                >
-                                                    <Download size={14} /> Exportar
-                                                </button>
-                                            )}
-                                            {onDuplicate && (
-                                                <button
-                                                    onClick={() => handleAction('duplicate')}
-                                                    className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-[#6a7282] hover:bg-gray-100"
-                                                >
-                                                    <Copy size={14} /> Duplicar
-                                                </button>
-                                            )}
-                                            {onDelete && (
-                                                <button
-                                                    onClick={() => handleAction('delete')}
-                                                    className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-[#6a7282] hover:bg-gray-100"
-                                                >
-                                                    <Trash2 size={14} /> Eliminar
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
                     </div>
                     <div className="mt-1 flex items-center gap-2 sm:mt-1 xl:mt-0">
                         {customActions.map((action, idx) => {
@@ -275,6 +185,98 @@ function PagesData<T extends { id: string | number }>({
                             );
                         })}
                     </div>
+                </div>
+                
+                <div className="mt-3 flex justify-left mb-6">
+                    <Input
+                        type="text"
+                        placeholder="Escribe para buscar..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full sm:max-w-[300px]"
+                    />
+                </div>
+                
+                <div className="flex flex-wrap justify-center gap-3">
+                    {selectedRows.size > 0 && (
+                        <div className="flex flex-wrap items-center gap-3 mb-7">
+                            {allPagesSelected ? (
+                                <>
+                                    <div className="flex items-center gap-3 rounded-sm border border-gray-600 bg-gray-200 px-3 py-[6.6px]">
+                                        <span className="text-[14px] font-medium text-[#6a7282] whitespace-nowrap">Todos {data.length} seleccionados</span>
+                                        <button
+                                            onClick={handleClearSelection}
+                                            className="cursor-pointer text-[#6a7282] hover:text-gray-800"
+                                            aria-label="Clear selection"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex items-center gap-3 rounded-sm border border-gray-600 bg-gray-200 px-3 py-1.5">
+                                        <span className="text-[14px] font-medium text-[#6a7282] whitespace-nowrap">
+                                            {selectedRows.size} seleccionado{selectedRows.size > 1 ? 's' : ''}
+                                        </span>
+                                        {shouldShowSelectAll && (
+                                            <button
+                                                onClick={handleSelectAll}
+                                                className="flex cursor-pointer items-center gap-1 rounded-sm bg-gray-500 px-3 py-[2px] text-[13px] font-medium text-white hover:bg-gray-600 whitespace-nowrap"
+                                            >
+                                                Seleccionar todos ({data.length})
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={handleClearSelection}
+                                            className="cursor-pointer text-[#6a7282] hover:text-gray-800"
+                                            aria-label="Clear selection"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+
+                            <div className="relative inline-block" ref={actionsRef}>
+                                <button
+                                    onClick={() => setIsActionsOpen((prev) => !prev)}
+                                    className={`flex cursor-pointer items-center gap-1 rounded-sm bg-gray-200 px-3 py-1.5 text-sm text-[#6a7282] hover:bg-gray-300 whitespace-nowrap ${isActionsOpen ? 'border border-gray-600' : 'border border-gray-200'}`}
+                                >
+                                    <Cog size={16} />
+                                    Acciones
+                                </button>
+                                {isActionsOpen && (
+                                    <div className="absolute -right-[95px] z-10 mt-2 w-48 rounded-sm border border-gray-300 bg-white shadow-lg">
+                                        {onExport && (
+                                            <button
+                                                onClick={() => handleAction('export')}
+                                                className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-[#6a7282] hover:bg-gray-100"
+                                            >
+                                                <Download size={14} /> Exportar
+                                            </button>
+                                        )}
+                                        {onDuplicate && (
+                                            <button
+                                                onClick={() => handleAction('duplicate')}
+                                                className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-[#6a7282] hover:bg-gray-100"
+                                            >
+                                                <Copy size={14} /> Duplicar
+                                            </button>
+                                        )}
+                                        {onDelete && (
+                                            <button
+                                                onClick={() => handleAction('delete')}
+                                                className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-[#6a7282] hover:bg-gray-100"
+                                            >
+                                                <Trash2 size={14} /> Eliminar
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
             <Table
