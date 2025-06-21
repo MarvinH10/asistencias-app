@@ -77,7 +77,11 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
         const action = isEdit ? put : post;
 
         action(endpoint, {
-            onSuccess: () => {},
+            onSuccess: () => {
+                if (isEdit) {
+                    window.location.href = `${urlView}?edit_success=true`;
+                }
+            },
             onError: (error) => {
                 console.error(`Error ${isEdit ? 'updating' : 'creating'} ${title}:`, error);
             }
@@ -199,8 +203,10 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                 );
 
             case 'date': {
-                const dateValue = data[field.name] as string | null;
+                const rawValue = data[field.name] as string | null;
+                const dateValue = rawValue ? rawValue.split('T')[0] : null;
                 const selected = dateValue ? new Date(`${dateValue}T00:00:00`) : undefined;
+
                 return (
                     <Popover>
                         <PopoverTrigger asChild>
@@ -408,7 +414,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                 })}
 
                 {isEdit && checkboxFields.map((field) => (
-                    <div key={field.name} className="flex flex-col">
+                    <div key={`${field.name}-${data[field.name]}`} className="flex flex-col">
                         <label htmlFor={field.name} className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-1">
                             {field.label}
                             {field.required && <span className="text-red-500 ml-1">*</span>}

@@ -21,7 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Department() {
+export default function Departments() {
     const { props } = usePage<DepartmentsPageProps>();
     const { departments } = props;
 
@@ -41,7 +41,6 @@ export default function Department() {
         handleRowClick,
         handleCreate,
         handleSelectAllPages,
-        fetchData,
         DeleteConfirmationModal,
     } = useTableActions({
         data: departments,
@@ -112,7 +111,7 @@ export default function Department() {
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Departamentos"
-                    fetchData={fetchData}
+                    data={departments}
                     columns={columns}
                     onExport={handleExport}
                     onDuplicate={handleDuplicate}

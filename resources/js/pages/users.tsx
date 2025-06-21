@@ -42,7 +42,6 @@ export default function Users() {
         handleRowClick,
         handleCreate,
         handleSelectAllPages,
-        fetchData,
         DeleteConfirmationModal,
     } = useTableActions({
         data: users,
@@ -81,27 +80,6 @@ export default function Users() {
                 month: '2-digit',
                 year: 'numeric',
             }) : '—',
-        },
-        {
-            key: 'imei_mac',
-            header: 'IMEI/MAC',
-            sortable: true,
-            render: (value) => value || '—',
-        },
-        {
-            key: 'firma_digital',
-            header: 'Firma Digital',
-            sortable: true,
-            render: (value) => value ? (
-                <a 
-                    href={`/storage/${value}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 underline"
-                >
-                    Ver firma
-                </a>
-            ) : 'No disponible',
         },
         {
             key: 'company_id',
@@ -155,7 +133,7 @@ export default function Users() {
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Usuarios"
-                    fetchData={fetchData}
+                    data={users}
                     columns={columns}
                     onExport={handleExport}
                     onDuplicate={handleDuplicate}

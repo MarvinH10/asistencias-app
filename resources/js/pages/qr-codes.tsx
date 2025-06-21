@@ -2,12 +2,11 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
 import { useState, useRef } from 'react';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import type { PageProps } from '@inertiajs/core';
 import { useAppearance } from '@/hooks/use-appearance';
 import Button from '@/components/ui/button-create-edit-form';
 import { QRCode } from 'react-qrcode-logo';
+import { toast } from 'react-toastify';
 
 interface QrCodePageProps extends PageProps {
     qrCodes: { id: number; qr_code: string }[];
@@ -30,8 +29,10 @@ export default function QrCodes() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post('/qr-codes', {
-            onSuccess: () => { toast.success('QR creado correctamente'); setIsCreating(false); reset(); },
-            onError: () => toast.error('Error al crear el QR'),
+            onSuccess: () => {
+                setIsCreating(false);
+                reset();
+            },
         });
     };
 
@@ -106,12 +107,8 @@ export default function QrCodes() {
         e.preventDefault();
         if (editingId) {
             router.put(`/qr-codes/${editingId}`, { qr_code: editValue }, {
-                onSuccess: () => {
-                    toast.success('QR actualizado correctamente');
-                    setEditingId(null);
-                    setEditValue('');
-                },
-                onError: () => toast.error('Error al actualizar el QR'),
+                onSuccess: () => handleEditCancel(),
+                onError: () => { /* Flash messages will handle this */ },
             });
         }
     };
@@ -119,7 +116,6 @@ export default function QrCodes() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Código QR" />
-            <ToastContainer />
             <div className="p-4">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className={`text-2xl font-bold ${effectiveTheme === 'dark' ? 'text-neutral-100' : 'text-neutral-700'}`}>Códigos QR</h1>

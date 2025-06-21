@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ArrowDownUp, ArrowUp, ArrowDown } from 'lucide-react';
 import type { TableProps } from '@/types/components/ui/table';
 import { useAppearance } from '@/hooks/use-appearance';
@@ -36,17 +36,17 @@ function Table<T extends { id: string | number }>({
     useEffect(() => {
         setCurrentPage(1);
         setSortConfig({ key: defaultSortKey, direction: 'desc' });
-      }, [data, defaultSortKey]);
+    }, [data, defaultSortKey]);
 
-      const sortedData = useMemo(() => {
+    const sortedData = useMemo(() => {
         return [...data].sort((a, b) => {
-          const aValue = a[sortConfig.key];
-          const bValue = b[sortConfig.key];
-          if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-          if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-          return 0;
+            const aValue = a[sortConfig.key];
+            const bValue = b[sortConfig.key];
+            if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+            if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+            return 0;
         });
-      }, [data, sortConfig]);
+    }, [data, sortConfig]);
 
     const totalPages = Math.ceil(sortedData.length / pageSize);
     const paginatedData = useMemo(() => {
@@ -289,11 +289,16 @@ function Table<T extends { id: string | number }>({
                                         const value = row[col.key];
                                         return (
                                             <td key={colIndex} className="px-4 py-3 text-sm">
-                                                {col.render ? col.render(value, row) : (
-                                                    value && typeof value === 'object'
-                                                        ? JSON.stringify(value)
-                                                        : String(value ?? '')
-                                                )}
+                                                {col.render
+                                                    ? col.render(value, row)
+                                                    : React.isValidElement(value)
+                                                        ? value
+                                                        : value == null
+                                                            ? ''
+                                                            : typeof value === 'object'
+                                                                ? JSON.stringify(value, null, 2)
+                                                                : String(value)
+                                                }
                                             </td>
                                         );
                                     })}

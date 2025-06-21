@@ -39,7 +39,6 @@ export default function Companies() {
         handleRowClick,
         handleCreate,
         handleSelectAllPages,
-        fetchData,
         DeleteConfirmationModal,
     } = useTableActions({
         data: companies,
@@ -69,11 +68,11 @@ export default function Companies() {
             header: 'Estado',
             sortable: true,
             render: (value) => (
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${value
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${value === true
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     }`}>
-                    {value ? 'Activo' : 'Inactivo'}
+                    {value === true ? 'Activo' : 'Inactivo'}
                 </span>
             ),
         },
@@ -94,11 +93,11 @@ export default function Companies() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Compañias" />
+            <Head title="Compañías" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Compañías"
-                    fetchData={fetchData}
+                    data={companies}
                     columns={columns}
                     onExport={handleExport}
                     onDuplicate={handleDuplicate}
