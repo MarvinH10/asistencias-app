@@ -236,7 +236,7 @@ class PageViewController extends Controller
         $model = $this->modelMap[$key];
         $model::create($validated);
 
-        return redirect("/$key")->with('success', ucfirst(Str::singular($key)) . ' creada exitosamente.');
+        return redirect("/$key")->with('success', 'Registro creado exitosamente.');
     }
 
     public function edit(Request $request, $id)
@@ -281,24 +281,45 @@ class PageViewController extends Controller
         $record = $model::findOrFail($id);
         $record->update($validated);
 
-        return redirect("/$key")->with('success', ucfirst(Str::singular($key)) . ' actualizado exitosamente.');
+        return redirect("/$key")->with('success', 'Registro actualizado exitosamente.');
     }
 
     public function delete(Request $request)
     {
-        $page = str_replace('.delete', '', $request->route()->getName());
+        $page = str_replace(['.delete', '.bulk-delete'], '', $request->route()->getName());
         $ids = $request->input('ids', []);
 
-        if (isset($this->modelMap[$page])) {
-            $model = $this->modelMap[$page];
-            if (is_array($ids) && count($ids) > 0) {
-                $model::whereIn('id', $ids)->delete();
-            } elseif ($request->route('id')) {
-                $model::destroy($request->route('id'));
-            }
+        if (empty($ids) && $request->route('id')) {
+            $ids = [$request->route('id')];
         }
 
-        return redirect("/$page")->with('success', ucfirst(Str::singular($page)) . ' eliminado exitosamente.');
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'No se han seleccionado elementos para eliminar.');
+        }
+        
+        if (isset($this->modelMap[$page])) {
+            $modelClass = $this->modelMap[$page];
+
+            if ($page === 'departments') {
+                if ($modelClass::whereIn('parent_id', $ids)->exists()) {
+                    return redirect()->back()->with('error', 'No se puede eliminar. Uno o más departamentos son padres de otros.');
+                }
+            }
+
+            try {
+                $deletedCount = $modelClass::whereIn('id', $ids)->delete();
+            } catch (\Illuminate\Database\QueryException $e) {
+                return redirect()->back()->with('error', 'Un error de base de datos impidió la eliminación.');
+            }
+
+            $registro = $deletedCount === 1 ? 'registro' : 'registros';
+            $eliminado = $deletedCount === 1 ? 'eliminado' : 'eliminados';
+            $successMessage = "{$deletedCount} {$registro} {$eliminado} exitosamente.";
+            
+            return redirect("/$page")->with('success', $successMessage);
+        }
+
+        abort(404);
     }
 
     public function duplicate(Request $request)
@@ -420,8 +441,12 @@ class PageViewController extends Controller
             $newCount++;
         }
 
+        $registro = $newCount === 1 ? 'registro' : 'registros';
+        $duplicado = $newCount === 1 ? 'duplicado' : 'duplicados';
+        $successMessage = "{$newCount} {$registro} {$duplicado} correctamente.";
+
         return redirect()->back()
-            ->with('success', "{$newCount} registro(s) duplicado(s) correctamente.");
+            ->with('success', $successMessage);
     }
 
     public function export(Request $request)

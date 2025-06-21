@@ -59,24 +59,17 @@ export function useTableActions<T extends { id: string | number }>({
     const handleDuplicate = useCallback(async (selectedIds: (string | number)[]) => {
         try {
             if (routes.duplicate) {
-                const count = selectedIds.length;
-                const successMessage = count === 1
-                    ? `1 ${entityDisplayName} duplicada exitosamente.`
-                    : `${count} ${entityDisplayNamePlural} duplicadas exitosamente.`;
-                const errorMessage = count === 1
-                    ? `Error al duplicar 1 ${entityDisplayName}`
-                    : `Error al duplicar ${count} ${entityDisplayNamePlural}`;
-
                 router.post(routes.duplicate, {
                     ids: selectedIds
                 }, {
                     onSuccess: () => {
-                        toast.success(successMessage);
                         onSuccess?.('duplicate', selectedIds);
                     },
-                    onError: (error) => {
+                    onError: (errors: Record<string, string>) => {
+                        const count = selectedIds.length;
+                        const errorMessage = errors?.message || `Error al duplicar ${count} ${entityDisplayNamePlural}`;
                         toast.error(errorMessage);
-                        onError?.('duplicate', error);
+                        onError?.('duplicate', errors);
                     }
                 });
             } else {
@@ -121,23 +114,25 @@ export function useTableActions<T extends { id: string | number }>({
             const { selectedIds, count } = deleteConfirmation;
 
             if (routes.delete) {
-                const successMessage = count === 1
-                    ? `1 ${entityDisplayName} eliminado exitosamente.`
-                    : `${count} ${entityDisplayNamePlural} eliminados exitosamente.`;
-                const errorMessage = count === 1
-                    ? `Error al eliminar 1 ${entityDisplayName}`
-                    : `Error al eliminar ${count} ${entityDisplayNamePlural}`;
-
                 router.delete(routes.delete, {
                     data: { ids: selectedIds },
                     onSuccess: () => {
-                        toast.success(successMessage);
                         onSuccess?.('delete', selectedIds);
                         setDeleteConfirmation({ isOpen: false, selectedIds: [], message: '', count: 0 });
                     },
-                    onError: (error) => {
-                        toast.error(errorMessage);
-                        onError?.('delete', error);
+                    onError: (errors: Record<string, string>) => {
+                        const serverMessage = errors?.message;
+                        
+                        if (serverMessage && typeof serverMessage === 'string') {
+                            toast.error(serverMessage);
+                        } else {
+                            const genericErrorMessage = count === 1
+                                ? `Error al eliminar 1 ${entityDisplayName}`
+                                : `Error al eliminar ${count} ${entityDisplayNamePlural}`;
+                            toast.error(genericErrorMessage);
+                        }
+                        
+                        onError?.('delete', errors);
                         setDeleteConfirmation({ isOpen: false, selectedIds: [], message: '', count: 0 });
                     }
                 });
