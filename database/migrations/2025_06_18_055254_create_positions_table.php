@@ -13,6 +13,18 @@ return new class extends Migration
     {
         Schema::create('positions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('company_id')
+                ->nullable()
+                ->constrained('companies')
+                ->onDelete('set null');
+            $table->foreignId('department_id')
+                ->nullable()
+                ->constrained('departments')
+                ->onDelete('set null');
+            $table->foreignId('parent_id')
+                ->nullable()
+                ->constrained('positions')
+                ->onDelete('set null');
             $table->string('nombre', 100);
             $table->string('descripcion', 255)->nullable();
             $table->boolean('estado')->default(true);

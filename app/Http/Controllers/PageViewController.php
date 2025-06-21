@@ -126,6 +126,9 @@ class PageViewController extends Controller
                 ['name' => 'nombre', 'label' => 'Nombre', 'type' => 'text', 'required' => true],
                 ['name' => 'descripcion', 'label' => 'Descripción', 'type' => 'text', 'required' => false],
                 ['name' => 'estado', 'label' => 'Activo', 'type' => 'checkbox', 'required' => false],
+                ['name' => 'company_id', 'label' => 'Compañía', 'type' => 'select', 'required' => true],
+                ['name' => 'department_id', 'label' => 'Departamento', 'type' => 'select', 'required' => false],
+                ['name' => 'parent_id', 'label' => 'Cargo Padre', 'type' => 'select', 'required' => false],
             ],
             'users' => [
                 ['name' => 'name', 'label' => 'Nombre', 'type' => 'text', 'required' => true],
@@ -137,6 +140,10 @@ class PageViewController extends Controller
                 ['name' => 'position_id', 'label' => 'Cargo', 'type' => 'select', 'required' => true],
                 ['name' => 'fecha_ingreso', 'label' => 'Fecha de Ingreso', 'type' => 'date', 'required' => true],
                 ['name' => 'fecha_retiro', 'label' => 'Fecha de Retiro', 'type' => 'date', 'required' => false],
+                ['name' => 'fecha_cumpleanos', 'label' => 'Fecha de Cumpleaños', 'type' => 'date', 'required' => false],
+                ['name' => 'imei_mac', 'label' => 'IMEI/MAC', 'type' => 'text', 'required' => false],
+                ['name' => 'firma_digital', 'label' => 'Firma Digital', 'type' => 'file', 'required' => false],
+                ['name' => 'dni', 'label' => 'DNI', 'type' => 'text', 'required' => true, 'maxlength' => 8, 'pattern' => '[0-9]{8}'],
                 ['name' => 'estado', 'label' => 'Activo', 'type' => 'checkbox', 'required' => false],
             ],
             'attendance-methods' => [

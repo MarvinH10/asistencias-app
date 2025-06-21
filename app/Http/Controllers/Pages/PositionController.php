@@ -14,7 +14,7 @@ class PositionController extends Controller
      */
     public function index()
     {
-        $positions = Position::all();
+        $positions = Position::with(['company', 'department', 'parent'])->get();
         return Inertia::render('positions', [
             'positions' => $positions
         ]);
@@ -25,7 +25,8 @@ class PositionController extends Controller
      */
     public function create()
     {
-        return Inertia::render('position/create');
+        return Inertia::render('position/create', array_merge([
+        ], self::getPositionFormOptions()));
     }
 
     /**
@@ -37,6 +38,9 @@ class PositionController extends Controller
             'nombre' => 'required|string|max:100',
             'descripcion' => 'nullable|string|max:255',
             'estado' => 'boolean',
+            'company_id' => 'required|exists:companies,id',
+            'department_id' => 'nullable|exists:departments,id',
+            'parent_id' => 'nullable|exists:positions,id',
         ]);
 
         Position::create($validated);
@@ -49,7 +53,7 @@ class PositionController extends Controller
      */
     public function show(Position $position)
     {
-        return Inertia::render('positions/show', [
+        return Inertia::render('positions', [
             'position' => $position
         ]);
     }
@@ -59,9 +63,9 @@ class PositionController extends Controller
      */
     public function edit(Position $position)
     {
-        return Inertia::render('positions/edit', [
-            'position' => $position
-        ]);
+        return Inertia::render('position/edit', array_merge([
+            'position' => $position->load(['company', 'department', 'parent']),
+        ], self::getPositionFormOptions($position->id)));
     }
 
     /**
@@ -73,6 +77,9 @@ class PositionController extends Controller
             'nombre' => 'required|string|max:100',
             'descripcion' => 'nullable|string|max:255',
             'estado' => 'boolean',
+            'company_id' => 'required|exists:companies,id',
+            'department_id' => 'nullable|exists:departments,id',
+            'parent_id' => 'nullable|exists:positions,id',
         ]);
 
         $position->update($validated);
@@ -128,5 +135,22 @@ class PositionController extends Controller
         Position::whereIn('id', $ids)->delete();
 
         return back()->with('success', 'Cargos eliminados exitosamente.');
+    }
+
+    public static function getPositionFormOptions($excludeId = null)
+    {
+        $companies = \App\Models\Company::select('id', 'razon_social')->get();
+        $departments = \App\Models\Department::select('id', 'nombre')->get();
+        $parentsQuery = Position::select('id', 'nombre');
+        if ($excludeId) {
+            $parentsQuery->where('id', '!=', $excludeId);
+        }
+        $parents = $parentsQuery->get();
+
+        return [
+            'companies' => $companies,
+            'departments' => $departments,
+            'parents' => $parents,
+        ];
     }
 }

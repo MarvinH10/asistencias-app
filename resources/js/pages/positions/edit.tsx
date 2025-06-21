@@ -11,11 +11,14 @@ interface Props extends PageProps {
     breadcrumb?: string;
     fields: FormField[];
     initialData: Record<string, string | number | boolean | null>;
+    companies: { id: number; razon_social: string }[];
+    departments: { id: number; nombre: string }[];
+    parents: { id: number; nombre: string }[];
 }
 
-export default function DepartmentsEdit() {
+export default function PositionsEdit() {
     const { props } = usePage<Props>();
-    const { title, urlView, breadcrumb, fields, initialData } = props;
+    const { title, urlView, breadcrumb, fields, initialData, companies, departments, parents } = props;
 
     return (
         <AppLayout>
@@ -27,7 +30,30 @@ export default function DepartmentsEdit() {
                     breadcrumb={breadcrumb}
                     initialData={initialData}
                     isEdit={true}
-                    fields={fields}
+                    fields={[
+                        ...fields.filter(f => f.name !== 'company_id' && f.name !== 'department_id' && f.name !== 'parent_id'),
+                        {
+                            name: 'company_id',
+                            label: 'Compañía',
+                            type: 'select',
+                            required: true,
+                            options: (companies ?? []).map(c => ({ value: String(c.id), label: c.razon_social })),
+                        },
+                        {
+                            name: 'department_id',
+                            label: 'Departamento',
+                            type: 'select',
+                            required: true,
+                            options: (departments ?? []).map(d => ({ value: String(d.id), label: d.nombre })),
+                        },
+                        {
+                            name: 'parent_id',
+                            label: 'Cargo Padre',
+                            type: 'select',
+                            required: false,
+                            options: (parents ?? []).map(p => ({ value: String(p.id), label: p.nombre })),
+                        },
+                    ]}
                     className="p-4"
                 />
             </div>

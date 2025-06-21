@@ -68,6 +68,42 @@ export default function Users() {
             sortable: true,
         },
         {
+            key: 'dni',
+            header: 'DNI',
+            sortable: true,
+        },
+        {
+            key: 'fecha_cumpleanos',
+            header: 'Fecha Cumpleaños',
+            sortable: true,
+            render: (value) => value ? new Date(value as string).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+            }) : '—',
+        },
+        {
+            key: 'imei_mac',
+            header: 'IMEI/MAC',
+            sortable: true,
+            render: (value) => value || '—',
+        },
+        {
+            key: 'firma_digital',
+            header: 'Firma Digital',
+            sortable: true,
+            render: (value) => value ? (
+                <a 
+                    href={`/storage/${value}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                >
+                    Ver firma
+                </a>
+            ) : 'No disponible',
+        },
+        {
             key: 'company_id',
             header: 'Compañía',
             sortable: true,
