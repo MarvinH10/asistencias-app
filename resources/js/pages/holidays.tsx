@@ -39,7 +39,6 @@ export default function Holidays() {
         handleRowClick,
         handleCreate,
         handleSelectAllPages,
-        fetchData,
         DeleteConfirmationModal,
     } = useTableActions({
         data: holidays,
@@ -103,7 +102,7 @@ export default function Holidays() {
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Feriados"
-                    fetchData={fetchData}
+                    data={holidays}
                     columns={columns}
                     onExport={handleExport}
                     onDuplicate={handleDuplicate}

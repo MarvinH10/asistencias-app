@@ -167,10 +167,6 @@ export function useTableActions<T extends { id: string | number }>({
         return data.map(item => item.id);
     }, [data]);
 
-    const fetchData = useCallback(async (): Promise<T[]> => {
-        return Promise.resolve(data || []);
-    }, [data]);
-
     const DeleteConfirmationModal = useCallback(() => (
         <Dialog open={deleteConfirmation.isOpen} onOpenChange={cancelDelete}>
             <DialogContent className="sm:max-w-md">
@@ -231,7 +227,6 @@ export function useTableActions<T extends { id: string | number }>({
         handleRowClick,
         handleCreate,
         handleSelectAllPages,
-        fetchData,
         DeleteConfirmationModal,
         deleteConfirmation,
     };

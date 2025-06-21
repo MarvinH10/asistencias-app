@@ -22,7 +22,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Position() {
+export default function Positions() {
     const { props } = usePage<PositionsPageProps>();
     const { positions } = props;
 
@@ -42,7 +42,6 @@ export default function Position() {
         handleRowClick,
         handleCreate,
         handleSelectAllPages,
-        fetchData,
         DeleteConfirmationModal,
     } = useTableActions({
         data: positions,
@@ -119,7 +118,7 @@ export default function Position() {
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Cargos"
-                    fetchData={fetchData}
+                    data={positions}
                     columns={columns}
                     onExport={handleExport}
                     onDuplicate={handleDuplicate}

@@ -16,7 +16,8 @@ export type CustomAction =
 interface PagesDataProps<T extends { id: string | number }> {
     title: string;
     breadcrumb?: ReactNode;
-    fetchData: () => Promise<T[]>;
+    data: T[];
+    version?: string | null;
     columns: Column<T>[];
     onExport?: (selectedIds: (string | number)[]) => void;
     onDuplicate?: (selectedIds: (string | number)[]) => void;
@@ -30,7 +31,7 @@ interface PagesDataProps<T extends { id: string | number }> {
 
 function renderValueToString(val: unknown): string {
     if (typeof val === 'string' || typeof val === 'number') return String(val);
-    if (typeof val === 'boolean') return val ? 'Sí' : 'No';
+    if (typeof val === 'boolean') return val ? 'Activo' : 'Inactivo';
     if (
         val &&
         typeof val === 'object' &&
@@ -50,7 +51,7 @@ function renderValueToString(val: unknown): string {
 function PagesData<T extends { id: string | number }>({
     title,
     breadcrumb,
-    fetchData,
+    data,
     columns,
     onExport,
     onDuplicate,
@@ -61,17 +62,12 @@ function PagesData<T extends { id: string | number }>({
     loading = false,
     customActions = [],
 }: PagesDataProps<T>) {
-    const [data, setData] = useState<T[]>([]);
     const [selectedRows, setSelectedRows] = useState<Set<string | number>>(new Set());
     const [isActionsOpen, setIsActionsOpen] = useState(false);
     const [currentVisibleIds, setCurrentVisibleIds] = useState<(string | number)[]>([]);
     const [allPagesSelected, setAllPagesSelected] = useState(false);
     const actionsRef = useRef<HTMLDivElement>(null);
     const [search, setSearch] = useState('');
-
-    useEffect(() => {
-        fetchData().then(setData);
-    }, [fetchData]);
 
     useEffect(() => {
         setSelectedRows(new Set());
@@ -281,6 +277,7 @@ function PagesData<T extends { id: string | number }>({
                 </div>
             </div>
             <Table
+                key={JSON.stringify(data)}
                 columns={columns}
                 data={filteredData}
                 pageSize={pageSize}

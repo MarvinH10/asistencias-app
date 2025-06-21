@@ -83,6 +83,10 @@ class PageViewController extends Controller
                 $rule[] = 'boolean';
             }
     
+            if ($key === 'companies' && $field['name'] === 'ruc') {
+                $rule[] = 'digits:11';
+            }
+
             if ($key === 'attendance-methods' && $field['name'] === 'clave') {
                 $rule[] = 'unique:attendance_methods,clave';
                 $messages['clave.unique'] = 'La clave ya está en uso.';
@@ -238,13 +242,13 @@ class PageViewController extends Controller
             'urlView' => "/{$key}",
             'breadcrumb' => $this->traducirClave($key) . ' / Crear',
             'fields' => $this->getFieldsSchema($key),
-            'companies' => Company::select('id', 'razon_social')->get(),
-            'parents' => Department::select('id', 'nombre')->get(),
-            'positions' => Position::select('id', 'nombre')->get(),
-            'departments' => Department::select('id', 'nombre')->get(),
-            'attendanceMethods' => AttendanceMethod::select('id', 'nombre')->get(),
-            'users' => User::select('id', 'name')->get(),
-            'shifts' => Shift::select('id', 'nombre')->get(),
+            'companies' => Company::where('estado', true)->select('id', 'razon_social')->get(),
+            'parents' => Department::where('estado', true)->select('id', 'nombre')->get(),
+            'positions' => Position::where('estado', true)->select('id', 'nombre')->get(),
+            'departments' => Department::where('estado', true)->select('id', 'nombre')->get(),
+            'attendanceMethods' => AttendanceMethod::where('estado', true)->select('id', 'nombre')->get(),
+            'users' => User::where('estado', true)->select('id', 'name')->get(),
+            'shifts' => Shift::where('estado', true)->select('id', 'nombre')->get(),
             'qrCodes' => QrCode::select('id', 'qr_code')->get(),
         ]);
     }
@@ -272,12 +276,15 @@ class PageViewController extends Controller
     public function edit(Request $request, $id)
     {
         $key = Str::before($request->route()->getName(), '.edit');
+        $model = $this->modelMap[$key];
+        $record = $model::findOrFail($id);
 
-        $data = [];
-
-        if (isset($this->modelMap[$key])) {
-            $model = $this->modelMap[$key];
-            $data['record'] = $model::findOrFail($id);
+        $usersQuery = User::where('estado', true);
+        if ($key === 'attendance-records' && isset($record->user_id)) {
+            $usersQuery->orWhere('id', $record->user_id);
+        }
+        if ($key === 'shifts' && isset($record->creado_por)) {
+            $usersQuery->orWhere('id', $record->creado_por);
         }
 
         return Inertia::render("{$key}/edit", [
@@ -286,14 +293,14 @@ class PageViewController extends Controller
             'urlView' => "/{$key}",
             'breadcrumb' => $this->traducirClave($key) . ' / Editar',
             'fields' => $this->getFieldsSchema($key),
-            'initialData' => $data['record'],
-            'companies' => Company::select('id', 'razon_social')->get(),
-            'parents' => Department::select('id', 'nombre')->get(),
-            'positions' => Position::select('id', 'nombre')->get(),
-            'departments' => Department::select('id', 'nombre')->get(),
-            'attendanceMethods' => AttendanceMethod::select('id', 'nombre')->get(),
-            'users' => User::select('id', 'name')->get(),
-            'shifts' => Shift::select('id', 'nombre')->get(),
+            'initialData' => $record,
+            'companies' => Company::where('estado', true)->when($record->company_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'razon_social')->get(),
+            'parents' => Department::where('estado', true)->when($record->parent_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'nombre')->get(),
+            'positions' => Position::where('estado', true)->when($record->position_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'nombre')->get(),
+            'departments' => Department::where('estado', true)->when($record->department_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'nombre')->get(),
+            'attendanceMethods' => AttendanceMethod::where('estado', true)->when($record->attendance_method_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'nombre')->get(),
+            'users' => $usersQuery->select('id', 'name')->get(),
+            'shifts' => Shift::where('estado', true)->select('id', 'nombre')->get(),
             'qrCodes' => QrCode::select('id', 'qr_code')->get(),
         ]);
     }
@@ -316,7 +323,7 @@ class PageViewController extends Controller
             return redirect()->back()->with('error', 'Un error de base de datos impidió la actualización del registro.');
         }
 
-        return redirect("/$key")->with('success', $this->traducirClave($key) . ' actualizado exitosamente.');
+        return redirect("/$key");
     }
 
     public function delete(Request $request)

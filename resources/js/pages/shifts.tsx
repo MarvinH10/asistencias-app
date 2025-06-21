@@ -20,7 +20,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Department() {
+export default function Shifts() {
     const { props } = usePage<ShiftsPageProps>();
     const { shifts } = props;
 
@@ -40,7 +40,6 @@ export default function Department() {
         handleRowClick,
         handleCreate,
         handleSelectAllPages,
-        fetchData,
         DeleteConfirmationModal,
     } = useTableActions({
         data: shifts,
@@ -110,7 +109,7 @@ export default function Department() {
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Turnos"
-                    fetchData={fetchData}
+                    data={shifts}
                     columns={columns}
                     onExport={handleExport}
                     onDuplicate={handleDuplicate}

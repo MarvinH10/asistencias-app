@@ -78,12 +78,12 @@ export default function UsersCreate() {
                             type: 'text',
                             required: false,
                         },
-                        {
-                            name: 'firma_digital',
-                            label: 'Firma Digital',
-                            type: 'text',
-                            required: false,
-                        },
+                        // {
+                        //     name: 'firma_digital',
+                        //     label: 'Firma Digital',
+                        //     type: 'text',
+                        //     required: false,
+                        // },
                     ]}
                     className="p-4"
                 />
