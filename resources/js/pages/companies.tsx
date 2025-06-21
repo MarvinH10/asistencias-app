@@ -7,8 +7,7 @@ import type { PageProps } from '@inertiajs/core';
 import type { Company } from '@/types/pages/company';
 import { useTableActions } from '@/hooks/use-table-actions';
 import Button from '@/components/ui/button-create-edit-form';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 interface CompaniesPageProps extends PageProps {
     companies: Company[];
@@ -111,7 +110,6 @@ export default function Companies() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Compañias" />
-            <ToastContainer />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Compañías"

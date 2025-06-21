@@ -7,8 +7,7 @@ import type { PageProps } from '@inertiajs/core';
 import type { Holiday } from '@/types/pages/holiday';
 import { useTableActions } from '@/hooks/use-table-actions';
 import Button from '@/components/ui/button-create-edit-form';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 interface HolidaysPageProps extends PageProps {
     holidays: Holiday[];
@@ -116,7 +115,6 @@ export default function Holidays() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Feriados" />
-            <ToastContainer />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Feriados"

@@ -7,8 +7,7 @@ import type { PageProps } from '@inertiajs/core';
 import type { AttendanceRecord } from '@/types/pages/attendance-record';
 import { useTableActions } from '@/hooks/use-table-actions';
 import Button from '@/components/ui/button-create-edit-form';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 interface AttendanceRecordsPageProps extends PageProps {
     attendanceRecords: AttendanceRecord[];
@@ -136,7 +135,6 @@ export default function Department() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Registros de Asistencia" />
-            <ToastContainer />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Registros de Asistencia"

@@ -7,8 +7,7 @@ import type { PageProps } from '@inertiajs/core';
 import type { Shift } from '@/types/pages/shift';
 import { useTableActions } from '@/hooks/use-table-actions';
 import Button from '@/components/ui/button-create-edit-form';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 interface ShiftsPageProps extends PageProps {
     shifts: Shift[];
@@ -123,7 +122,6 @@ export default function Department() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Turnos" />
-            <ToastContainer />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Turnos"

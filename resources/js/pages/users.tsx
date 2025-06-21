@@ -7,8 +7,7 @@ import type { PageProps } from '@inertiajs/core';
 import type { User } from '@/types/pages/user';
 import { useTableActions } from '@/hooks/use-table-actions';
 import Button from '@/components/ui/button-create-edit-form';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 interface UsersPageProps extends PageProps {
     users: User[];
@@ -132,7 +131,6 @@ export default function Users() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Usuarios" />
-            <ToastContainer />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Usuarios"
