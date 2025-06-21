@@ -61,7 +61,7 @@ const QRCapture: React.FC<QRCaptureProps> = ({ onCodeDetected, isActive, onToggl
 
             const config = {
                 fps: 5,
-                qrbox: 150,
+                qrbox: 180,
             };
 
             await scannerRef.current.start(
