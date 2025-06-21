@@ -122,6 +122,10 @@ class PageViewController extends Controller
                 ['name' => 'position_id', 'label' => 'Cargo', 'type' => 'select', 'required' => true],
                 ['name' => 'fecha_ingreso', 'label' => 'Fecha de Ingreso', 'type' => 'date', 'required' => true],
                 ['name' => 'fecha_retiro', 'label' => 'Fecha de Retiro', 'type' => 'date', 'required' => false],
+                ['name' => 'fecha_cumpleanos', 'label' => 'Fecha de Cumpleaños', 'type' => 'date', 'required' => false],
+                ['name' => 'imei_mac', 'label' => 'IMEI/MAC', 'type' => 'text', 'required' => false],
+                ['name' => 'firma_digital', 'label' => 'Firma Digital', 'type' => 'file', 'required' => false],
+                ['name' => 'dni', 'label' => 'DNI', 'type' => 'text', 'required' => true, 'maxlength' => 8, 'pattern' => '[0-9]{8}'],
                 ['name' => 'estado', 'label' => 'Activo', 'type' => 'checkbox', 'required' => false],
             ],
             'attendance-methods' => [
