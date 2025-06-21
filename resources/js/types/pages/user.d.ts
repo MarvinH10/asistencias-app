@@ -9,6 +9,10 @@ export interface User {
     position_id: number;
     fecha_ingreso: string;
     fecha_retiro: string;
+    fecha_cumpleanos?: string | null;
+    device_uid?: string | null;
+    firma_digital?: string | null;
+    dni: string;
     estado: boolean;
     created_at: string;
     updated_at: string;

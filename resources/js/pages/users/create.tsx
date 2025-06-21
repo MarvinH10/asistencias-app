@@ -30,7 +30,8 @@ export default function UsersCreate() {
                     initialData={null}
                     isEdit={false}
                     fields={[
-                        ...fields.filter(f => f.name !== 'company_id' && f.name !== 'department_id' && f.name !== 'position_id' && f.name !== 'qr_code_id'),
+                        ...fields.filter(f => f.name !== 'company_id' && f.name !== 'department_id' && f.name !== 'position_id' && f.name !== 'qr_code_id' && 
+                                          f.name !== 'fecha_cumpleanos' && f.name !== 'device_uid' && f.name !== 'firma_digital' && f.name !== 'dni'),
                         {
                             name: 'qr_code_id',
                             label: 'Código QR',
@@ -59,6 +60,24 @@ export default function UsersCreate() {
                             required: true,
                             options: (positions ?? []).map(p => ({ value: String(p.id), label: p.nombre })),
                         },
+                        {
+                            name: 'dni',
+                            label: 'DNI',
+                            type: 'text',
+                            required: true,
+                        },
+                        {
+                            name: 'fecha_cumpleanos',
+                            label: 'Fecha de Cumpleaños',
+                            type: 'date',
+                            required: false,
+                        },
+                        // {
+                        //     name: 'firma_digital',
+                        //     label: 'Firma Digital',
+                        //     type: 'text',
+                        //     required: false,
+                        // },
                     ]}
                     className="p-4"
                 />

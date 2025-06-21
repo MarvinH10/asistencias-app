@@ -9,11 +9,14 @@ interface Props extends PageProps {
     urlView: string;
     breadcrumb?: string;
     fields: FormField[];
+    companies: { id: number; razon_social: string }[];
+    departments: { id: number; nombre: string }[];
+    parents: { id: number; nombre: string }[];
 }
 
-export default function DepartmentsCreate() {
+export default function PositionsCreate() {
     const { props } = usePage<Props>();
-    const { title, urlView, breadcrumb, fields } = props;
+    const { title, urlView, breadcrumb, fields, companies, departments, parents } = props;
 
     return (
         <AppLayout>
@@ -25,7 +28,30 @@ export default function DepartmentsCreate() {
                     breadcrumb={breadcrumb}
                     initialData={null}
                     isEdit={false}
-                    fields={fields}
+                    fields={[
+                        ...fields.filter(f => f.name !== 'company_id' && f.name !== 'department_id' && f.name !== 'parent_id'),
+                        {
+                            name: 'company_id',
+                            label: 'Compañía',
+                            type: 'select',
+                            required: true,
+                            options: (companies ?? []).map(c => ({ value: String(c.id), label: c.razon_social })),
+                        },
+                        {
+                            name: 'department_id',
+                            label: 'Departamento',
+                            type: 'select',
+                            required: true,
+                            options: (departments ?? []).map(d => ({ value: String(d.id), label: d.nombre })),
+                        },
+                        {
+                            name: 'parent_id',
+                            label: 'Cargo Padre',
+                            type: 'select',
+                            required: false,
+                            options: (parents ?? []).map(p => ({ value: String(p.id), label: p.nombre })),
+                        },
+                    ]}
                     className="p-4"
                 />
             </div>

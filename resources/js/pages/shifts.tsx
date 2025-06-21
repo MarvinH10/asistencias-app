@@ -1,14 +1,12 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage, router } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import PagesData from '@/components/pages-data';
 import type { Column } from '@/types/components/ui/table';
 import type { PageProps } from '@inertiajs/core';
 import type { Shift } from '@/types/pages/shift';
 import { useTableActions } from '@/hooks/use-table-actions';
 import Button from '@/components/ui/button-create-edit-form';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 interface ShiftsPageProps extends PageProps {
     shifts: Shift[];
@@ -22,7 +20,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Department() {
+export default function Shifts() {
     const { props } = usePage<ShiftsPageProps>();
     const { shifts } = props;
 
@@ -42,27 +40,12 @@ export default function Department() {
         handleRowClick,
         handleCreate,
         handleSelectAllPages,
-        fetchData,
         DeleteConfirmationModal,
     } = useTableActions({
         data: shifts,
         entityDisplayName: 'turno',
         entityDisplayNamePlural: 'turnos',
         routes,
-        onSuccess: (action) => {
-            if (action === 'delete') {
-                router.reload({ only: ['shift'] });
-            } else if (action === 'duplicate') {
-                router.reload({ only: ['shift'] });
-            }
-        },
-        onError: (action) => {
-            let msg = 'Ocurrió un error.';
-            if (action === 'export') msg = 'Error al exportar los turnos';
-            else if (action === 'duplicate') msg = 'Error al duplicar los turnos';
-            else if (action === 'delete') msg = 'Error al eliminar los turnos';
-            toast.error(msg);
-        },
     });
 
     const columns: Column<Shift>[] = [
@@ -123,11 +106,10 @@ export default function Department() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Turnos" />
-            <ToastContainer />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Turnos"
-                    fetchData={fetchData}
+                    data={shifts}
                     columns={columns}
                     onExport={handleExport}
                     onDuplicate={handleDuplicate}

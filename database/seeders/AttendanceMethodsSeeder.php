@@ -7,25 +7,19 @@ use App\Models\AttendanceMethod;
 
 class AttendanceMethodsSeeder extends Seeder
 {
-    public function run()
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
     {
-        AttendanceMethod::create([
-            'clave' => 'qr1234567890',
-            'nombre' => 'QR',
-            'descripcion' => 'Método de marcado por QR',
-            'estado' => true,
-        ]);
-        AttendanceMethod::create([
-            'clave' => 'bio1234567890',
-            'nombre' => 'Biométrico',
-            'descripcion' => 'Método de marcado por biométrico',
-            'estado' => true,
-        ]);
-        AttendanceMethod::create([
-            'clave' => 'man1234567890',
-            'nombre' => 'Manual',
-            'descripcion' => 'Método de marcado manual',
-            'estado' => true,
-        ]);
+        $methods = [
+            ['clave' => 'QR', 'nombre' => 'QR', 'descripcion' => 'Registro mediante escaneo de código QR'],
+            ['clave' => 'BIOMETRICO', 'nombre' => 'Biométrico', 'descripcion' => 'Registro mediante huella dactilar u otro dato biométrico'],
+            ['clave' => 'MANUAL', 'nombre' => 'Manual', 'descripcion' => 'Registro manual por un administrador'],
+        ];
+
+        foreach ($methods as $method) {
+            AttendanceMethod::create($method);
+        }
     }
 }

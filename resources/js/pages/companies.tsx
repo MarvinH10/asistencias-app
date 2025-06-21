@@ -1,14 +1,12 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage, router } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import PagesData from '@/components/pages-data';
 import type { Column } from '@/types/components/ui/table';
 import type { PageProps } from '@inertiajs/core';
 import type { Company } from '@/types/pages/company';
 import { useTableActions } from '@/hooks/use-table-actions';
 import Button from '@/components/ui/button-create-edit-form';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 interface CompaniesPageProps extends PageProps {
     companies: Company[];
@@ -41,27 +39,12 @@ export default function Companies() {
         handleRowClick,
         handleCreate,
         handleSelectAllPages,
-        fetchData,
         DeleteConfirmationModal,
     } = useTableActions({
         data: companies,
         entityDisplayName: 'compañía',
         entityDisplayNamePlural: 'compañías',
         routes,
-        onSuccess: (action) => {
-            if (action === 'delete') {
-                router.reload({ only: ['companies'] });
-            } else if (action === 'duplicate') {
-                router.reload({ only: ['companies'] });
-            }
-        },
-        onError: (action) => {
-            let msg = 'Ocurrió un error.';
-            if (action === 'export') msg = 'Error al exportar las compañías';
-            else if (action === 'duplicate') msg = 'Error al duplicar las compañías';
-            else if (action === 'delete') msg = 'Error al eliminar las compañías';
-            toast.error(msg);
-        },
     });
 
     const columns: Column<Company>[] = [
@@ -85,11 +68,11 @@ export default function Companies() {
             header: 'Estado',
             sortable: true,
             render: (value) => (
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${value
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${value === true
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     }`}>
-                    {value ? 'Activo' : 'Inactivo'}
+                    {value === true ? 'Activo' : 'Inactivo'}
                 </span>
             ),
         },
@@ -110,12 +93,11 @@ export default function Companies() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Compañias" />
-            <ToastContainer />
+            <Head title="Compañías" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Compañías"
-                    fetchData={fetchData}
+                    data={companies}
                     columns={columns}
                     onExport={handleExport}
                     onDuplicate={handleDuplicate}

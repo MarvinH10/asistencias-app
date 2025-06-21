@@ -26,6 +26,10 @@ class User extends Authenticatable
         'position_id',
         'fecha_ingreso',
         'fecha_retiro',
+        'fecha_cumpleanos',
+        'device_uid',
+        'firma_digital',
+        'dni',
         'estado',
         'qr_code_id',
     ];
@@ -50,6 +54,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'fecha_cumpleanos' => 'date',
+            'estado' => 'boolean',
         ];
     }
 

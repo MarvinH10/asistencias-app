@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
+use App\Http\Middleware\HandleInertiaRequests;
 
 class Kernel extends HttpKernel
 {
@@ -30,4 +31,14 @@ class Kernel extends HttpKernel
     protected $middlewarePriority = [
         // Add your middleware priorities here
     ];
+
+    protected function bootstrappers(): array
+    {
+        return array_merge(
+            parent::bootstrappers(),
+            [
+                HandleInertiaRequests::class,
+            ]
+        );
+    }
 } 

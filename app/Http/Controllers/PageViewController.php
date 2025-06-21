@@ -16,6 +16,7 @@ use App\Models\Shift;
 use Illuminate\Support\Str;
 use App\Exports\GenericExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Database\QueryException;
 
 class PageViewController extends Controller
 {
@@ -38,6 +39,23 @@ class PageViewController extends Controller
         return $traducciones[$singular] ?? $singular;
     }
 
+    protected function getPluralTraduccion(string $singular): string
+    {
+        $traduccionesPlural = [
+            'Código QR' => 'códigos qr',
+            'Compañía' => 'compañías',
+            'Departamento' => 'departamentos',
+            'Cargo' => 'cargos',
+            'Usuario' => 'usuarios',
+            'Método de marcado' => 'métodos de marcado',
+            'Registro de asistencia' => 'registros de asistencia',
+            'Feriado' => 'feriados',
+            'Turno' => 'turnos',
+        ];
+
+        return $traduccionesPlural[$singular] ?? Str::plural($singular);
+    }
+
     protected function validateFields(Request $request, string $key): array
     {
         $rules = [];
@@ -47,6 +65,10 @@ class PageViewController extends Controller
         $id = $request->route('id');
 
         foreach ($this->getFieldsSchema($key) as $field) {
+            if (isset($field['readonly']) && $field['readonly']) {
+                continue;
+            }
+            
             $rule = [];
     
             if (! $field['required']) {
@@ -65,6 +87,10 @@ class PageViewController extends Controller
                 $rule[] = 'boolean';
             }
     
+            if ($key === 'companies' && $field['name'] === 'ruc') {
+                $rule[] = 'digits:11';
+            }
+
             if ($key === 'attendance-methods' && $field['name'] === 'clave') {
                 $rule[] = 'unique:attendance_methods,clave';
                 $messages['clave.unique'] = 'La clave ya está en uso.';
@@ -108,6 +134,9 @@ class PageViewController extends Controller
                 ['name' => 'nombre', 'label' => 'Nombre', 'type' => 'text', 'required' => true],
                 ['name' => 'descripcion', 'label' => 'Descripción', 'type' => 'text', 'required' => false],
                 ['name' => 'estado', 'label' => 'Activo', 'type' => 'checkbox', 'required' => false],
+                ['name' => 'company_id', 'label' => 'Compañía', 'type' => 'select', 'required' => true],
+                ['name' => 'department_id', 'label' => 'Departamento', 'type' => 'select', 'required' => false],
+                ['name' => 'parent_id', 'label' => 'Cargo Padre', 'type' => 'select', 'required' => false],
             ],
             'users' => [
                 ['name' => 'name', 'label' => 'Nombre', 'type' => 'text', 'required' => true],
@@ -119,6 +148,10 @@ class PageViewController extends Controller
                 ['name' => 'position_id', 'label' => 'Cargo', 'type' => 'select', 'required' => true],
                 ['name' => 'fecha_ingreso', 'label' => 'Fecha de Ingreso', 'type' => 'date', 'required' => true],
                 ['name' => 'fecha_retiro', 'label' => 'Fecha de Retiro', 'type' => 'date', 'required' => false],
+                ['name' => 'fecha_cumpleanos', 'label' => 'Fecha de Cumpleaños', 'type' => 'date', 'required' => false],
+                ['name' => 'device_uid', 'label' => 'ID único del dispositivo', 'type' => 'text', 'required' => false, 'readonly' => true],
+                ['name' => 'firma_digital', 'label' => 'Firma Digital', 'type' => 'file', 'required' => false],
+                ['name' => 'dni', 'label' => 'DNI', 'type' => 'text', 'required' => true, 'maxlength' => 8, 'pattern' => '[0-9]{8}'],
                 ['name' => 'estado', 'label' => 'Activo', 'type' => 'checkbox', 'required' => false],
             ],
             'attendance-methods' => [
@@ -208,18 +241,24 @@ class PageViewController extends Controller
         $key = Str::before($request->route()->getName(), '.create');
         $page = $key;
 
+        $attendanceMethodsQuery = AttendanceMethod::where('estado', true);
+
+        if ($key === 'attendance-records') {
+            $attendanceMethodsQuery->where('clave', 'MANUAL');
+        }
+
         return Inertia::render("{$page}/create", [
             'title' => $this->traducirClave($key),
             'urlView' => "/{$key}",
             'breadcrumb' => $this->traducirClave($key) . ' / Crear',
             'fields' => $this->getFieldsSchema($key),
-            'companies' => Company::select('id', 'razon_social')->get(),
-            'parents' => Department::select('id', 'nombre')->get(),
-            'positions' => Position::select('id', 'nombre')->get(),
-            'departments' => Department::select('id', 'nombre')->get(),
-            'attendanceMethods' => AttendanceMethod::select('id', 'nombre')->get(),
-            'users' => User::select('id', 'name')->get(),
-            'shifts' => Shift::select('id', 'nombre')->get(),
+            'companies' => Company::where('estado', true)->select('id', 'razon_social')->get(),
+            'parents' => Department::where('estado', true)->select('id', 'nombre')->get(),
+            'positions' => Position::where('estado', true)->select('id', 'nombre')->get(),
+            'departments' => Department::where('estado', true)->select('id', 'nombre')->get(),
+            'attendanceMethods' => $attendanceMethodsQuery->select('id', 'nombre', 'clave')->get(),
+            'users' => User::where('estado', true)->select('id', 'name')->get(),
+            'shifts' => Shift::where('estado', true)->select('id', 'nombre')->get(),
             'qrCodes' => QrCode::select('id', 'qr_code')->get(),
         ]);
     }
@@ -234,20 +273,28 @@ class PageViewController extends Controller
 
         $validated = $this->validateFields($request, $key);
         $model = $this->modelMap[$key];
-        $model::create($validated);
+        
+        try {
+            $model::create($validated);
+        } catch (QueryException $e) {
+            return redirect()->back()->with('error', 'Un error de base de datos impidió la creación del registro.');
+        }
 
-        return redirect("/$key")->with('success', ucfirst(Str::singular($key)) . ' creada exitosamente.');
+        return redirect("/$key")->with('success', $this->traducirClave($key) . ' creado exitosamente.');
     }
 
     public function edit(Request $request, $id)
     {
         $key = Str::before($request->route()->getName(), '.edit');
+        $model = $this->modelMap[$key];
+        $record = $model::findOrFail($id);
 
-        $data = [];
-
-        if (isset($this->modelMap[$key])) {
-            $model = $this->modelMap[$key];
-            $data['record'] = $model::findOrFail($id);
+        $usersQuery = User::where('estado', true);
+        if ($key === 'attendance-records' && isset($record->user_id)) {
+            $usersQuery->orWhere('id', $record->user_id);
+        }
+        if ($key === 'shifts' && isset($record->creado_por)) {
+            $usersQuery->orWhere('id', $record->creado_por);
         }
 
         return Inertia::render("{$key}/edit", [
@@ -256,14 +303,14 @@ class PageViewController extends Controller
             'urlView' => "/{$key}",
             'breadcrumb' => $this->traducirClave($key) . ' / Editar',
             'fields' => $this->getFieldsSchema($key),
-            'initialData' => $data['record'],
-            'companies' => Company::select('id', 'razon_social')->get(),
-            'parents' => Department::select('id', 'nombre')->get(),
-            'positions' => Position::select('id', 'nombre')->get(),
-            'departments' => Department::select('id', 'nombre')->get(),
-            'attendanceMethods' => AttendanceMethod::select('id', 'nombre')->get(),
-            'users' => User::select('id', 'name')->get(),
-            'shifts' => Shift::select('id', 'nombre')->get(),
+            'initialData' => $record,
+            'companies' => Company::where('estado', true)->when($record->company_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'razon_social')->get(),
+            'parents' => Department::where('estado', true)->when($record->parent_id, fn($q, $id) => $q->orWhere('id', 'id'))->select('id', 'nombre')->get(),
+            'positions' => Position::where('estado', true)->when($record->position_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'nombre')->get(),
+            'departments' => Department::where('estado', true)->when($record->department_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'nombre')->get(),
+            'attendanceMethods' => AttendanceMethod::where('estado', true)->when($record->attendance_method_id, fn($q, $id) => $q->orWhere('id', $id))->select('id', 'nombre', 'clave')->get(),
+            'users' => $usersQuery->select('id', 'name')->get(),
+            'shifts' => Shift::where('estado', true)->select('id', 'nombre')->get(),
             'qrCodes' => QrCode::select('id', 'qr_code')->get(),
         ]);
     }
@@ -279,26 +326,60 @@ class PageViewController extends Controller
         $validated = $this->validateFields($request, $key);
         $model = $this->modelMap[$key];
         $record = $model::findOrFail($id);
-        $record->update($validated);
+        
+        try {
+            $record->update($validated);
+        } catch (QueryException $e) {
+            return redirect()->back()->with('error', 'Un error de base de datos impidió la actualización del registro.');
+        }
 
-        return redirect("/$key")->with('success', ucfirst(Str::singular($key)) . ' actualizado exitosamente.');
+        return redirect("/$key");
     }
 
     public function delete(Request $request)
     {
-        $page = str_replace('.delete', '', $request->route()->getName());
+        $page = str_replace(['.delete', '.bulk-delete'], '', $request->route()->getName());
         $ids = $request->input('ids', []);
 
-        if (isset($this->modelMap[$page])) {
-            $model = $this->modelMap[$page];
-            if (is_array($ids) && count($ids) > 0) {
-                $model::whereIn('id', $ids)->delete();
-            } elseif ($request->route('id')) {
-                $model::destroy($request->route('id'));
-            }
+        if (empty($ids) && $request->route('id')) {
+            $ids = [$request->route('id')];
         }
 
-        return redirect("/$page")->with('success', ucfirst(Str::singular($page)) . ' eliminado exitosamente.');
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'No se han seleccionado elementos para eliminar.');
+        }
+        
+        if (isset($this->modelMap[$page])) {
+            $modelClass = $this->modelMap[$page];
+
+            try {
+                $deletedCount = $modelClass::whereIn('id', $ids)->delete();
+            } catch (QueryException $e) {
+                if ($e->getCode() === '23000') {
+                    $singular = $this->traducirClave($page);
+                    $plural = $this->getPluralTraduccion($singular);
+                    
+                    return redirect()->back()->with('error', "No se puede eliminar. Al menos uno de los {$plural} seleccionados está en uso.");
+                }
+
+                return redirect()->back()->with('error', 'Un error de base de datos impidió la eliminación.');
+            }
+
+            if ($deletedCount > 0) {
+                $singular = $this->traducirClave($page);
+                if ($deletedCount === 1) {
+                    $successMessage = "{$singular} eliminado exitosamente.";
+                } else {
+                    $plural = $this->getPluralTraduccion($singular);
+                    $successMessage = "{$deletedCount} {$plural} eliminados exitosamente.";
+                }
+                return redirect("/$page")->with('success', $successMessage);
+            }
+            
+            return redirect("/$page")->with('error', 'No se eliminó ningún registro.');
+        }
+
+        abort(404);
     }
 
     public function duplicate(Request $request)
@@ -324,11 +405,11 @@ class PageViewController extends Controller
 
             if ($key === 'departments' && isset($clone->codigo)) {
                 $baseCodigo = $clone->codigo;
-                $newCodigo = $baseCodigo . '_copy';
+                $newCodigo = "{$baseCodigo}_copy";
                 $counter = 1;
 
                 while ($modelClass::where('codigo', $newCodigo)->exists()) {
-                    $newCodigo = $baseCodigo . '_copy_' . $counter;
+                    $newCodigo = "{$baseCodigo}_copy_{$counter}";
                     $counter++;
 
                     if (strlen($newCodigo) > 20) {
@@ -338,38 +419,24 @@ class PageViewController extends Controller
                 }
 
                 $clone->codigo = $newCodigo;
-                $clone->nombre = $record->nombre . ' (Copia)';
-                $clone->direccion = $record->direccion ? $record->direccion . ' (Copia)' : null;
-                $clone->descripcion = $record->descripcion ? $record->descripcion . ' (Copia)' : null;
+                $clone->nombre = "{$record->nombre} (Copia)";
+                $clone->direccion = $record->direccion ? "{$record->direccion} (Copia)" : null;
+                $clone->descripcion = $record->descripcion ? "{$record->descripcion} (Copia)" : null;
             }
 
             if ($key === 'companies' && isset($clone->ruc)) {
-                $baseRuc = $clone->ruc;
-                $newRuc = $baseRuc . '_copy';
-                $counter = 1;
-
-                while ($modelClass::where('ruc', $newRuc)->exists()) {
-                    $newRuc = $baseRuc . '_copy_' . $counter;
-                    $counter++;
-
-                    if (strlen($newRuc) > 50) {
-                        $newRuc = substr($baseRuc, 0, 20) . '_' . time();
-                        break;
-                    }
-                }
-
-                $clone->ruc = $newRuc;
-                $clone->razon_social = $record->razon_social . ' (Copia)';
+                $clone->razon_social = "{$record->razon_social} (Copia)";
+                $clone->ruc = $record->ruc;
             }
 
             if ($key === 'positions') {
-                $clone->nombre = $record->nombre . ' (Copia)';
-                $clone->descripcion = $record->descripcion ? $record->descripcion . ' (Copia)' : null;
+                $clone->nombre = "{$record->nombre} (Copia)";
+                $clone->descripcion = $record->descripcion ? "{$record->descripcion} (Copia)" : null;
             }
 
             if ($key === 'users') {
-                $clone->name = $record->name . ' (Copia)';
-                $clone->email = $record->email . ' (Copia)';
+                $clone->name = "{$record->name} (Copia)";
+                $clone->email = "{$record->email} (Copia)";
                 $clone->password = $record->password;
                 $clone->qr_code_id = $record->qr_code_id;
                 $clone->company_id = $record->company_id;
@@ -381,9 +448,9 @@ class PageViewController extends Controller
             }
 
             if ($key === 'attendance-methods') {
-                $clone->clave = $record->clave . ' (Copia)';
-                $clone->nombre = $record->nombre . ' (Copia)';
-                $clone->descripcion = $record->descripcion ? $record->descripcion . ' (Copia)' : null;
+                $clone->clave = "{$record->clave} (Copia)";
+                $clone->nombre = "{$record->nombre} (Copia)";
+                $clone->descripcion = $record->descripcion ? "{$record->descripcion} (Copia)" : null;
                 $clone->estado = $record->estado;
             }
 
@@ -402,14 +469,14 @@ class PageViewController extends Controller
 
             if ($key === 'holidays') {
                 $clone->fecha = $record->fecha;
-                $clone->nombre = $record->nombre . ' (Copia)';
-                $clone->descripcion = $record->descripcion ? $record->descripcion . ' (Copia)' : null;
+                $clone->nombre = "{$record->nombre} (Copia)";
+                $clone->descripcion = $record->descripcion ? "{$record->descripcion} (Copia)" : null;
                 $clone->recurrente = $record->recurrente;
                 $clone->estado = $record->estado;
             }
 
             if ($key === 'shifts') {
-                $clone->nombre = $record->nombre . ' (Copia)';
+                $clone->nombre = "{$record->nombre} (Copia)";
                 $clone->hora_inicio = $record->hora_inicio;
                 $clone->hora_fin = $record->hora_fin;
                 $clone->creado_por = $record->creado_por;
@@ -420,8 +487,19 @@ class PageViewController extends Controller
             $newCount++;
         }
 
+        if ($newCount > 0) {
+            $singular = $this->traducirClave($key);
+            if ($newCount === 1) {
+                $successMessage = "{$singular} duplicado correctamente.";
+            } else {
+                $plural = $this->getPluralTraduccion($singular);
+                $successMessage = "{$newCount} {$plural} duplicados correctamente.";
+            }
+            return redirect()->back()->with('success', $successMessage);
+        }
+
         return redirect()->back()
-            ->with('success', "{$newCount} registro(s) duplicado(s) correctamente.");
+            ->with('error', 'No se duplicó ningún registro.');
     }
 
     public function export(Request $request)

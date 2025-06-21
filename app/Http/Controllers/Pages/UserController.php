@@ -49,9 +49,24 @@ class UserController extends Controller
             'fecha_ingreso' => 'required|date',
             'fecha_retiro' => 'nullable|date',
             'estado' => 'boolean',
+            'fecha_cumpleanos' => 'nullable|date',
+            'device_uid' => 'nullable|string|max:100',
+            'firma_digital' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'dni' => 'required|string|size:8|regex:/^[0-9]+$/',
         ], [
             'email.unique' => 'El correo electrónico ya está en uso.',
+            'dni.required' => 'El DNI es obligatorio.',
+            'dni.size' => 'El DNI debe tener exactamente 8 dígitos.',
+            'dni.regex' => 'El DNI debe contener solo números.',
+            'firma_digital.mimes' => 'La firma digital debe ser una imagen (jpeg, png, jpg, gif, svg).',
+            'firma_digital.max' => 'La firma digital no debe exceder 2MB.',
         ]);
+
+        // Procesar la firma digital si se ha subido un archivo
+        if ($request->hasFile('firma_digital')) {
+            $firmaPath = $request->file('firma_digital')->store('firmas', 'public');
+            $validated['firma_digital'] = $firmaPath;
+        }
 
         User::create($validated);
 
@@ -94,9 +109,32 @@ class UserController extends Controller
             'fecha_ingreso' => 'required|date',
             'fecha_retiro' => 'nullable|date',
             'estado' => 'boolean',
+            // Nuevos campos
+            'fecha_cumpleanos' => 'nullable|date',
+            'device_uid' => 'nullable|string|max:100',
+            'firma_digital' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'dni' => 'required|string|size:8|regex:/^[0-9]+$/',
         ], [
             'email.unique' => 'El correo electrónico ya está en uso.',
+            'dni.required' => 'El DNI es obligatorio.',
+            'dni.size' => 'El DNI debe tener exactamente 8 dígitos.',
+            'dni.regex' => 'El DNI debe contener solo números.',
+            'firma_digital.mimes' => 'La firma digital debe ser una imagen (jpeg, png, jpg, gif, svg).',
+            'firma_digital.max' => 'La firma digital no debe exceder 2MB.',
         ]);
+
+        // Procesar la firma digital si se ha subido un archivo
+        if ($request->hasFile('firma_digital')) {
+            // Eliminar la firma anterior si existe
+            if ($user->firma_digital && file_exists(public_path('storage/' . $user->firma_digital))) {
+                unlink(public_path('storage/' . $user->firma_digital));
+            }
+            $firmaPath = $request->file('firma_digital')->store('firmas', 'public');
+            $validated['firma_digital'] = $firmaPath;
+        } else {
+            // Si no se subió un nuevo archivo, mantener el valor actual
+            unset($validated['firma_digital']);
+        }
 
         $user->update($validated);
 

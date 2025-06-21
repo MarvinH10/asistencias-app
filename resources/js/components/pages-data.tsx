@@ -3,6 +3,7 @@ import type { Column } from '@/types/components/ui/table';
 import { Cog, Copy, Download, Trash2, X } from 'lucide-react';
 import type { ReactElement, ReactNode } from 'react';
 import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { Input } from '@/components/ui/input';
 
 export type CustomAction =
     | {
@@ -16,7 +17,8 @@ export type CustomAction =
 interface PagesDataProps<T extends { id: string | number }> {
     title: string;
     breadcrumb?: ReactNode;
-    fetchData: () => Promise<T[]>;
+    data: T[];
+    version?: string | null;
     columns: Column<T>[];
     onExport?: (selectedIds: (string | number)[]) => void;
     onDuplicate?: (selectedIds: (string | number)[]) => void;
@@ -30,7 +32,7 @@ interface PagesDataProps<T extends { id: string | number }> {
 
 function renderValueToString(val: unknown): string {
     if (typeof val === 'string' || typeof val === 'number') return String(val);
-    if (typeof val === 'boolean') return val ? 'Sí' : 'No';
+    if (typeof val === 'boolean') return val ? 'Activo' : 'Inactivo';
     if (
         val &&
         typeof val === 'object' &&
@@ -50,7 +52,7 @@ function renderValueToString(val: unknown): string {
 function PagesData<T extends { id: string | number }>({
     title,
     breadcrumb,
-    fetchData,
+    data,
     columns,
     onExport,
     onDuplicate,
@@ -61,17 +63,12 @@ function PagesData<T extends { id: string | number }>({
     loading = false,
     customActions = [],
 }: PagesDataProps<T>) {
-    const [data, setData] = useState<T[]>([]);
     const [selectedRows, setSelectedRows] = useState<Set<string | number>>(new Set());
     const [isActionsOpen, setIsActionsOpen] = useState(false);
     const [currentVisibleIds, setCurrentVisibleIds] = useState<(string | number)[]>([]);
     const [allPagesSelected, setAllPagesSelected] = useState(false);
     const actionsRef = useRef<HTMLDivElement>(null);
     const [search, setSearch] = useState('');
-
-    useEffect(() => {
-        fetchData().then(setData);
-    }, [fetchData]);
 
     useEffect(() => {
         setSelectedRows(new Set());
@@ -175,12 +172,12 @@ function PagesData<T extends { id: string | number }>({
                         {breadcrumb && <div className="items-center text-sm text-[#6a7282]">{breadcrumb}</div>}
                     </div>
                     <div className="mt-2 mb-2 flex flex-1 justify-end">
-                        <input
+                        <Input
                             type="text"
                             placeholder="Escribe para buscar..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full sm:max-w-[300px] rounded border border-gray-300 px-3 py-2 text-sm focus:ring-0 focus:ring-gray-400 focus:outline-none"
+                            className="w-full sm:max-w-[300px]"
                         />
                     </div>
                     <div className="mt-1 flex flex-1 justify-center">
@@ -281,6 +278,7 @@ function PagesData<T extends { id: string | number }>({
                 </div>
             </div>
             <Table
+                key={JSON.stringify(data)}
                 columns={columns}
                 data={filteredData}
                 pageSize={pageSize}

@@ -20,7 +20,7 @@ createInertiaApp({
                 <App {...props} />
                 <ToastContainer
                     position="top-right"
-                    autoClose={3000}
+                    autoClose={5000}
                     hideProgressBar={false}
                     newestOnTop={false}
                     closeOnClick
@@ -29,6 +29,7 @@ createInertiaApp({
                     draggable
                     pauseOnHover
                     theme="light"
+                    limit={3}
                 />
             </>
         );

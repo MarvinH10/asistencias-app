@@ -31,6 +31,10 @@ return new class extends Migration {
                 ->nullable()
                 ->constrained('positions')
                 ->onDelete('set null');
+            $table->date('fecha_cumpleanos')->nullable();
+            $table->string('device_uid', 100)->nullable();
+            $table->string('firma_digital')->nullable();
+            $table->string('dni', 20);
             $table->date('fecha_ingreso')->nullable();
             $table->date('fecha_retiro')->nullable();
             $table->boolean('estado')->default(true);

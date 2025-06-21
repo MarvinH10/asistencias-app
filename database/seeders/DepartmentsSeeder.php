@@ -10,37 +10,64 @@ class DepartmentsSeeder extends Seeder
     public function run()
     {
         Department::create([
-            'nombre' => 'Abtao Kdosh',
-            'codigo' => '10001',
+            'nombre' => 'Administración',
+            'codigo' => 'ADM001',
             'direccion' => 'Jr. Abtao Nro. 1101 Huánuco',
-            'descripcion' => 'Departamento de Huánuco Abtao',
+            'descripcion' => 'Departamento de administración y gestión general',
             'estado' => true,
             'parent_id' => null,
             'company_id' => 1,
         ]);
         Department::create([
-            'nombre' => 'San Martin Kdosh',
-            'codigo' => '10002',
-            'direccion' => 'Jr. San Martin Nro. 967 Huánuco',
-            'descripcion' => 'Departamento de Huánuco San Martin',
+            'nombre' => 'Cocina',
+            'codigo' => 'COC001',
+            'direccion' => 'Jr. Abtao Nro. 1101 Huánuco',
+            'descripcion' => 'Departamento de cocina y preparación de alimentos',
             'estado' => true,
-            'parent_id' => 1,
+            'parent_id' => null,
             'company_id' => 1,
         ]);
         Department::create([
-            'nombre' => 'Abtao Olympo',
-            'codigo' => '10003',
+            'nombre' => 'Servicio',
+            'codigo' => 'SER001',
             'direccion' => 'Jr. Abtao Nro. 1101 Huánuco',
-            'descripcion' => 'Departamento de Huánuco Abtao',
+            'descripcion' => 'Departamento de atención al cliente y servicio',
             'estado' => true,
             'parent_id' => null,
-            'company_id' => 2,
+            'company_id' => 1,
         ]);
         Department::create([
-            'nombre' => 'Tingo María Kdosh',
-            'codigo' => '10131',
-            'direccion' => 'Av. Raymondy 269 Tingo Maria',
-            'descripcion' => 'Departamento de Tingo María',
+            'nombre' => 'Bar',
+            'codigo' => 'BAR001',
+            'direccion' => 'Jr. Abtao Nro. 1101 Huánuco',
+            'descripcion' => 'Departamento de bar y preparación de bebidas',
+            'estado' => true,
+            'parent_id' => null,
+            'company_id' => 1,
+        ]);
+        Department::create([
+            'nombre' => 'Limpieza',
+            'codigo' => 'LIM001',
+            'direccion' => 'Jr. Abtao Nro. 1101 Huánuco',
+            'descripcion' => 'Departamento de limpieza y mantenimiento',
+            'estado' => true,
+            'parent_id' => null,
+            'company_id' => 1,
+        ]);
+        Department::create([
+            'nombre' => 'Seguridad',
+            'codigo' => 'SEG001',
+            'direccion' => 'Jr. Abtao Nro. 1101 Huánuco',
+            'descripcion' => 'Departamento de seguridad y vigilancia',
+            'estado' => true,
+            'parent_id' => null,
+            'company_id' => 1,
+        ]);
+        Department::create([
+            'nombre' => 'Ventas',
+            'codigo' => 'VEN001',
+            'direccion' => 'Jr. Abtao Nro. 1101 Huánuco',
+            'descripcion' => 'Departamento de ventas y marketing',
             'estado' => true,
             'parent_id' => null,
             'company_id' => 1,

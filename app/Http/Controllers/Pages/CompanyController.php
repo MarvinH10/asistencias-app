@@ -35,7 +35,7 @@ class CompanyController extends Controller
     {
         $validated = $request->validate([
             'razon_social' => 'required|string|max:255',
-            'ruc' => 'required|string|max:20|unique:companies',
+            'ruc' => 'required|string|max:20',
             'estado' => 'boolean',
         ]);
 
@@ -71,7 +71,7 @@ class CompanyController extends Controller
     {
         $validated = $request->validate([
             'razon_social' => 'required|string|max:255',
-            'ruc' => 'required|string|max:20|unique:companies,ruc,' . $company->id,
+            'ruc' => 'required|string|max:20',
             'estado' => 'boolean',
         ]);
 
@@ -106,7 +106,7 @@ class CompanyController extends Controller
 
         foreach ($companies as $company) {
             $newCompany = $company->replicate();
-            $newCompany->razon_social = $company->razon_social . ' (Copia)';
+            $newCompany->razon_social = $company->razon_social;
             $newCompany->ruc = $company->ruc . '_copy_' . time();
             $newCompany->save();
         }
