@@ -16,6 +16,7 @@ use App\Models\Shift;
 use Illuminate\Support\Str;
 use App\Exports\GenericExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Database\QueryException;
 
 class PageViewController extends Controller
 {
@@ -36,6 +37,23 @@ class PageViewController extends Controller
         $singular = Str::singular(ucwords($key));
 
         return $traducciones[$singular] ?? $singular;
+    }
+
+    protected function getPluralTraduccion(string $singular): string
+    {
+        $traduccionesPlural = [
+            'Código QR' => 'códigos qr',
+            'Compañía' => 'compañías',
+            'Departamento' => 'departamentos',
+            'Cargo' => 'cargos',
+            'Usuario' => 'usuarios',
+            'Método de marcado' => 'métodos de marcado',
+            'Registro de asistencia' => 'registros de asistencia',
+            'Feriado' => 'feriados',
+            'Turno' => 'turnos',
+        ];
+
+        return $traduccionesPlural[$singular] ?? Str::plural($singular);
     }
 
     protected function validateFields(Request $request, string $key): array
@@ -234,9 +252,14 @@ class PageViewController extends Controller
 
         $validated = $this->validateFields($request, $key);
         $model = $this->modelMap[$key];
-        $model::create($validated);
+        
+        try {
+            $model::create($validated);
+        } catch (QueryException $e) {
+            return redirect()->back()->with('error', 'Un error de base de datos impidió la creación del registro.');
+        }
 
-        return redirect("/$key")->with('success', ucfirst(Str::singular($key)) . ' creada exitosamente.');
+        return redirect("/$key")->with('success', $this->traducirClave($key) . ' creado exitosamente.');
     }
 
     public function edit(Request $request, $id)
@@ -279,26 +302,60 @@ class PageViewController extends Controller
         $validated = $this->validateFields($request, $key);
         $model = $this->modelMap[$key];
         $record = $model::findOrFail($id);
-        $record->update($validated);
+        
+        try {
+            $record->update($validated);
+        } catch (QueryException $e) {
+            return redirect()->back()->with('error', 'Un error de base de datos impidió la actualización del registro.');
+        }
 
-        return redirect("/$key")->with('success', ucfirst(Str::singular($key)) . ' actualizado exitosamente.');
+        return redirect("/$key")->with('success', $this->traducirClave($key) . ' actualizado exitosamente.');
     }
 
     public function delete(Request $request)
     {
-        $page = str_replace('.delete', '', $request->route()->getName());
+        $page = str_replace(['.delete', '.bulk-delete'], '', $request->route()->getName());
         $ids = $request->input('ids', []);
 
-        if (isset($this->modelMap[$page])) {
-            $model = $this->modelMap[$page];
-            if (is_array($ids) && count($ids) > 0) {
-                $model::whereIn('id', $ids)->delete();
-            } elseif ($request->route('id')) {
-                $model::destroy($request->route('id'));
-            }
+        if (empty($ids) && $request->route('id')) {
+            $ids = [$request->route('id')];
         }
 
-        return redirect("/$page")->with('success', ucfirst(Str::singular($page)) . ' eliminado exitosamente.');
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'No se han seleccionado elementos para eliminar.');
+        }
+        
+        if (isset($this->modelMap[$page])) {
+            $modelClass = $this->modelMap[$page];
+
+            try {
+                $deletedCount = $modelClass::whereIn('id', $ids)->delete();
+            } catch (QueryException $e) {
+                if ($e->getCode() === '23000') {
+                    $singular = $this->traducirClave($page);
+                    $plural = $this->getPluralTraduccion($singular);
+                    
+                    return redirect()->back()->with('error', "No se puede eliminar. Al menos uno de los {$plural} seleccionados está en uso.");
+                }
+
+                return redirect()->back()->with('error', 'Un error de base de datos impidió la eliminación.');
+            }
+
+            if ($deletedCount > 0) {
+                $singular = $this->traducirClave($page);
+                if ($deletedCount === 1) {
+                    $successMessage = "{$singular} eliminado exitosamente.";
+                } else {
+                    $plural = $this->getPluralTraduccion($singular);
+                    $successMessage = "{$deletedCount} {$plural} eliminados exitosamente.";
+                }
+                return redirect("/$page")->with('success', $successMessage);
+            }
+            
+            return redirect("/$page")->with('error', 'No se eliminó ningún registro.');
+        }
+
+        abort(404);
     }
 
     public function duplicate(Request $request)
@@ -324,11 +381,11 @@ class PageViewController extends Controller
 
             if ($key === 'departments' && isset($clone->codigo)) {
                 $baseCodigo = $clone->codigo;
-                $newCodigo = $baseCodigo . '_copy';
+                $newCodigo = "{$baseCodigo}_copy";
                 $counter = 1;
 
                 while ($modelClass::where('codigo', $newCodigo)->exists()) {
-                    $newCodigo = $baseCodigo . '_copy_' . $counter;
+                    $newCodigo = "{$baseCodigo}_copy_{$counter}";
                     $counter++;
 
                     if (strlen($newCodigo) > 20) {
@@ -338,38 +395,24 @@ class PageViewController extends Controller
                 }
 
                 $clone->codigo = $newCodigo;
-                $clone->nombre = $record->nombre . ' (Copia)';
-                $clone->direccion = $record->direccion ? $record->direccion . ' (Copia)' : null;
-                $clone->descripcion = $record->descripcion ? $record->descripcion . ' (Copia)' : null;
+                $clone->nombre = "{$record->nombre} (Copia)";
+                $clone->direccion = $record->direccion ? "{$record->direccion} (Copia)" : null;
+                $clone->descripcion = $record->descripcion ? "{$record->descripcion} (Copia)" : null;
             }
 
             if ($key === 'companies' && isset($clone->ruc)) {
-                $baseRuc = $clone->ruc;
-                $newRuc = $baseRuc . '_copy';
-                $counter = 1;
-
-                while ($modelClass::where('ruc', $newRuc)->exists()) {
-                    $newRuc = $baseRuc . '_copy_' . $counter;
-                    $counter++;
-
-                    if (strlen($newRuc) > 50) {
-                        $newRuc = substr($baseRuc, 0, 20) . '_' . time();
-                        break;
-                    }
-                }
-
-                $clone->ruc = $newRuc;
-                $clone->razon_social = $record->razon_social . ' (Copia)';
+                $clone->razon_social = "{$record->razon_social} (Copia)";
+                $clone->ruc = $record->ruc;
             }
 
             if ($key === 'positions') {
-                $clone->nombre = $record->nombre . ' (Copia)';
-                $clone->descripcion = $record->descripcion ? $record->descripcion . ' (Copia)' : null;
+                $clone->nombre = "{$record->nombre} (Copia)";
+                $clone->descripcion = $record->descripcion ? "{$record->descripcion} (Copia)" : null;
             }
 
             if ($key === 'users') {
-                $clone->name = $record->name . ' (Copia)';
-                $clone->email = $record->email . ' (Copia)';
+                $clone->name = "{$record->name} (Copia)";
+                $clone->email = "{$record->email} (Copia)";
                 $clone->password = $record->password;
                 $clone->qr_code_id = $record->qr_code_id;
                 $clone->company_id = $record->company_id;
@@ -381,9 +424,9 @@ class PageViewController extends Controller
             }
 
             if ($key === 'attendance-methods') {
-                $clone->clave = $record->clave . ' (Copia)';
-                $clone->nombre = $record->nombre . ' (Copia)';
-                $clone->descripcion = $record->descripcion ? $record->descripcion . ' (Copia)' : null;
+                $clone->clave = "{$record->clave} (Copia)";
+                $clone->nombre = "{$record->nombre} (Copia)";
+                $clone->descripcion = $record->descripcion ? "{$record->descripcion} (Copia)" : null;
                 $clone->estado = $record->estado;
             }
 
@@ -402,14 +445,14 @@ class PageViewController extends Controller
 
             if ($key === 'holidays') {
                 $clone->fecha = $record->fecha;
-                $clone->nombre = $record->nombre . ' (Copia)';
-                $clone->descripcion = $record->descripcion ? $record->descripcion . ' (Copia)' : null;
+                $clone->nombre = "{$record->nombre} (Copia)";
+                $clone->descripcion = $record->descripcion ? "{$record->descripcion} (Copia)" : null;
                 $clone->recurrente = $record->recurrente;
                 $clone->estado = $record->estado;
             }
 
             if ($key === 'shifts') {
-                $clone->nombre = $record->nombre . ' (Copia)';
+                $clone->nombre = "{$record->nombre} (Copia)";
                 $clone->hora_inicio = $record->hora_inicio;
                 $clone->hora_fin = $record->hora_fin;
                 $clone->creado_por = $record->creado_por;
@@ -420,8 +463,19 @@ class PageViewController extends Controller
             $newCount++;
         }
 
+        if ($newCount > 0) {
+            $singular = $this->traducirClave($key);
+            if ($newCount === 1) {
+                $successMessage = "{$singular} duplicado correctamente.";
+            } else {
+                $plural = $this->getPluralTraduccion($singular);
+                $successMessage = "{$newCount} {$plural} duplicados correctamente.";
+            }
+            return redirect()->back()->with('success', $successMessage);
+        }
+
         return redirect()->back()
-            ->with('success', "{$newCount} registro(s) duplicado(s) correctamente.");
+            ->with('error', 'No se duplicó ningún registro.');
     }
 
     public function export(Request $request)

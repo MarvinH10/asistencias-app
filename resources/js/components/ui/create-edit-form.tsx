@@ -1,6 +1,5 @@
 import React from 'react';
 import { useForm, router } from '@inertiajs/react';
-import { toast } from 'react-toastify';
 import {default as SubmitButton} from '@/components/ui/button-create-edit-form';
 import { Button } from '@/components/ui/button';
 import type { CreateEditFormProps, FormField } from '@/types/components/ui/form';
@@ -78,17 +77,8 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
         const action = isEdit ? put : post;
 
         action(endpoint, {
-            onSuccess: () => {
-                const successMessage = isEdit
-                    ? `${title} actualizado exitosamente.`
-                    : `${title} creado exitosamente.`;
-                toast.success(successMessage);
-            },
+            onSuccess: () => {},
             onError: (error) => {
-                const errorMessage = isEdit
-                    ? `Error al actualizar ${title.toLowerCase()}`
-                    : `Error al crear ${title.toLowerCase()}`;
-                toast.error(errorMessage);
                 console.error(`Error ${isEdit ? 'updating' : 'creating'} ${title}:`, error);
             }
         });

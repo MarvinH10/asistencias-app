@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
             $table->string('razon_social', 100);
-            $table->string('ruc', 11)->unique();
+            $table->string('ruc', 11);
             $table->boolean('estado')->default(true);
             $table->timestamps();
         });

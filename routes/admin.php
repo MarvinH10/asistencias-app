@@ -46,6 +46,9 @@ Route::middleware(['auth', 'verified', CheckPosition::class])->group(function ()
         Route::delete("$page/{id}", [PageViewController::class, 'delete'])
             ->name("$page.delete");
 
+        Route::delete("$page/bulk-delete", [PageViewController::class, 'delete'])
+            ->name("$page.bulk-delete");
+
         // Operaciones adicionales
         Route::post("$page/duplicate", [PageViewController::class, 'duplicate'])
             ->name("$page.duplicate");

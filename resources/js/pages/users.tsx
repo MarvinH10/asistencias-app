@@ -1,14 +1,12 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage, router } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import PagesData from '@/components/pages-data';
 import type { Column } from '@/types/components/ui/table';
 import type { PageProps } from '@inertiajs/core';
 import type { User } from '@/types/pages/user';
 import { useTableActions } from '@/hooks/use-table-actions';
 import Button from '@/components/ui/button-create-edit-form';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 interface UsersPageProps extends PageProps {
     users: User[];
@@ -51,20 +49,6 @@ export default function Users() {
         entityDisplayName: 'usuario',
         entityDisplayNamePlural: 'usuarios',
         routes,
-        onSuccess: (action) => {
-            if (action === 'delete') {
-                router.reload({ only: ['user'] });
-            } else if (action === 'duplicate') {
-                router.reload({ only: ['user'] });
-            }
-        },
-        onError: (action) => {
-            let msg = 'Ocurrió un error.';
-            if (action === 'export') msg = 'Error al exportar los usuarios';
-            else if (action === 'duplicate') msg = 'Error al duplicar los usuarios';
-            else if (action === 'delete') msg = 'Error al eliminar los usuarios';
-            toast.error(msg);
-        },
     });
 
     const columns: Column<User>[] = [
@@ -132,7 +116,6 @@ export default function Users() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Usuarios" />
-            <ToastContainer />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Usuarios"

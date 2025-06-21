@@ -1,14 +1,12 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage, router } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import PagesData from '@/components/pages-data';
 import type { Column } from '@/types/components/ui/table';
 import type { PageProps } from '@inertiajs/core';
 import type { AttendanceMethod } from '@/types/pages/attendance-method';
 import { useTableActions } from '@/hooks/use-table-actions';
 import Button from '@/components/ui/button-create-edit-form';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 interface AttendanceMethodsPageProps extends PageProps {
     attendanceMethods: AttendanceMethod[];
@@ -48,20 +46,6 @@ export default function AttendanceMethods() {
         entityDisplayName: 'método de marcado',
         entityDisplayNamePlural: 'métodos de marcado',
         routes,
-        onSuccess: (action) => {
-            if (action === 'delete') {
-                router.reload({ only: ['attendance-methods'] });
-            } else if (action === 'duplicate') {
-                router.reload({ only: ['attendance-methods'] });
-            }
-        },
-        onError: (action) => {
-            let msg = 'Ocurrió un error.';
-            if (action === 'export') msg = 'Error al exportar los métodos de marcado';
-            else if (action === 'duplicate') msg = 'Error al duplicar los métodos de marcado';
-            else if (action === 'delete') msg = 'Error al eliminar los métodos de marcado';
-            toast.error(msg);
-        },
     });
 
     const columns: Column<AttendanceMethod>[] = [
@@ -111,7 +95,6 @@ export default function AttendanceMethods() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Métodos de Marcado" />
-            <ToastContainer />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <PagesData
                     title="Métodos de Marcado"
