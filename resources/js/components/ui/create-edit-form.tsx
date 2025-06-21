@@ -159,6 +159,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                         value={getFieldValue(field.name)}
                         onValueChange={(value) => setData(field.name, value)}
                         required={field.required}
+                        disabled={field.readonly}
                     >
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder={field.placeholder || `Seleccione ${field.label}`} />
@@ -181,6 +182,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                         minLength={field.validation?.minLength}
                         maxLength={field.validation?.maxLength}
                         onChange={e => setData(field.name, e.target.value === '' ? null : e.target.value)}
+                        disabled={field.readonly}
                     />
                 );
 
@@ -192,6 +194,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                         min={field.validation?.min}
                         max={field.validation?.max}
                         onChange={e => setData(field.name, e.target.value === '' ? null : e.target.value)}
+                        disabled={field.readonly}
                     />
                 );
 
@@ -202,6 +205,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                         onCheckedChange={(checked) => setData(field.name, checked)}
                         name={field.name}
                         id={field.name}
+                        disabled={field.readonly}
                     />
                 );
 
@@ -216,6 +220,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                             const file = e.target.files?.[0] || null;
                             setData(field.name, file);
                         }}
+                        disabled={field.readonly}
                     />
                 );
 
@@ -224,6 +229,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                     <Input
                         {...commonProps}
                         type="password"
+                        disabled={field.readonly}
                     />
                 );
 
@@ -390,6 +396,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                         maxLength={field.validation?.maxLength}
                         pattern={field.validation?.pattern}
                         onChange={e => setData(field.name, e.target.value === '' ? null : e.target.value)}
+                        disabled={field.readonly}
                     />
                 );
                 
@@ -401,6 +408,7 @@ const CreateEditForm: React.FC<CreateEditFormProps> = ({
                         minLength={field.validation?.minLength}
                         maxLength={field.validation?.maxLength}
                         pattern={field.validation?.pattern}
+                        disabled={field.readonly}
                     />
                 );
         }

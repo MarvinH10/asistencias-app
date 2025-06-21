@@ -3,6 +3,7 @@ import type { Column } from '@/types/components/ui/table';
 import { Cog, Copy, Download, Trash2, X } from 'lucide-react';
 import type { ReactElement, ReactNode } from 'react';
 import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { Input } from '@/components/ui/input';
 
 export type CustomAction =
     | {
@@ -171,12 +172,12 @@ function PagesData<T extends { id: string | number }>({
                         {breadcrumb && <div className="items-center text-sm text-[#6a7282]">{breadcrumb}</div>}
                     </div>
                     <div className="mt-2 mb-2 flex flex-1 justify-end">
-                        <input
+                        <Input
                             type="text"
                             placeholder="Escribe para buscar..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full sm:max-w-[300px] rounded border border-gray-300 px-3 py-2 text-sm focus:ring-0 focus:ring-gray-400 focus:outline-none"
+                            className="w-full sm:max-w-[300px]"
                         />
                     </div>
                     <div className="mt-1 flex flex-1 justify-center">

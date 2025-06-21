@@ -8,6 +8,7 @@ export interface FormField {
     required?: boolean;
     showWhenEdit?: boolean;
     placeholder?: string;
+    readonly?: boolean;
     options?: { value: string; label: string }[];
     validation?: {
         min?: number;

@@ -50,7 +50,7 @@ class UserController extends Controller
             'fecha_retiro' => 'nullable|date',
             'estado' => 'boolean',
             'fecha_cumpleanos' => 'nullable|date',
-            'imei_mac' => 'nullable|string|max:100',
+            'device_uid' => 'nullable|string|max:100',
             'firma_digital' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'dni' => 'required|string|size:8|regex:/^[0-9]+$/',
         ], [
@@ -111,7 +111,7 @@ class UserController extends Controller
             'estado' => 'boolean',
             // Nuevos campos
             'fecha_cumpleanos' => 'nullable|date',
-            'imei_mac' => 'nullable|string|max:100',
+            'device_uid' => 'nullable|string|max:100',
             'firma_digital' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'dni' => 'required|string|size:8|regex:/^[0-9]+$/',
         ], [

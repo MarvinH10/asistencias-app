@@ -65,6 +65,10 @@ class PageViewController extends Controller
         $id = $request->route('id');
 
         foreach ($this->getFieldsSchema($key) as $field) {
+            if (isset($field['readonly']) && $field['readonly']) {
+                continue;
+            }
+            
             $rule = [];
     
             if (! $field['required']) {
@@ -145,7 +149,7 @@ class PageViewController extends Controller
                 ['name' => 'fecha_ingreso', 'label' => 'Fecha de Ingreso', 'type' => 'date', 'required' => true],
                 ['name' => 'fecha_retiro', 'label' => 'Fecha de Retiro', 'type' => 'date', 'required' => false],
                 ['name' => 'fecha_cumpleanos', 'label' => 'Fecha de Cumpleaños', 'type' => 'date', 'required' => false],
-                ['name' => 'imei_mac', 'label' => 'IMEI/MAC', 'type' => 'text', 'required' => false],
+                ['name' => 'device_uid', 'label' => 'ID único del dispositivo', 'type' => 'text', 'required' => false, 'readonly' => true],
                 ['name' => 'firma_digital', 'label' => 'Firma Digital', 'type' => 'file', 'required' => false],
                 ['name' => 'dni', 'label' => 'DNI', 'type' => 'text', 'required' => true, 'maxlength' => 8, 'pattern' => '[0-9]{8}'],
                 ['name' => 'estado', 'label' => 'Activo', 'type' => 'checkbox', 'required' => false],

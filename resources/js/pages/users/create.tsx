@@ -31,7 +31,7 @@ export default function UsersCreate() {
                     isEdit={false}
                     fields={[
                         ...fields.filter(f => f.name !== 'company_id' && f.name !== 'department_id' && f.name !== 'position_id' && f.name !== 'qr_code_id' && 
-                                          f.name !== 'fecha_cumpleanos' && f.name !== 'imei_mac' && f.name !== 'firma_digital' && f.name !== 'dni'),
+                                          f.name !== 'fecha_cumpleanos' && f.name !== 'device_uid' && f.name !== 'firma_digital' && f.name !== 'dni'),
                         {
                             name: 'qr_code_id',
                             label: 'Código QR',
@@ -70,12 +70,6 @@ export default function UsersCreate() {
                             name: 'fecha_cumpleanos',
                             label: 'Fecha de Cumpleaños',
                             type: 'date',
-                            required: false,
-                        },
-                        {
-                            name: 'imei_mac',
-                            label: 'IMEI/MAC',
-                            type: 'text',
                             required: false,
                         },
                         // {

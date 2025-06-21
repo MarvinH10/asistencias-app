@@ -251,17 +251,17 @@ const ScannerPage: React.FC = () => {
         <div className="h-screen overflow-hidden w-full bg-black bg-gradient-to-tl from-neutral-700 via-neutral-800 to-neutral-900 flex flex-col relative">
             <Head title="Escáner" />
 
-            {hasAdminAccess && (
-                <Link
-                    href="/dashboard"
-                    className="absolute top-20 right-4 z-10 rounded-md bg-white bg-opacity-50 shadow-md px-4 py-2 text-sm font-medium text-neutral-800 transition hover:bg-neutral-200 cursor-pointer"
-                >
-                    Panel
-                </Link>
-            )}
-
             <div className="flex-shrink-0 text-center w-full max-w-md pt-6 px-4 mx-auto">
                 <h1 className="text-2xl font-bold text-white mb-4">Escanee el código QR</h1>
+
+                {hasAdminAccess && (
+                    <Link
+                        href="/dashboard"
+                        className="inline-block rounded-md bg-white bg-opacity-80 shadow-md px-4 py-2 text-sm font-medium text-neutral-800 transition hover:bg-white cursor-pointer"
+                    >
+                        Panel
+                    </Link>
+                )}
 
                 {err && (
                     <div className="my-4">

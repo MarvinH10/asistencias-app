@@ -33,7 +33,7 @@ export default function UsersEdit() {
                     isEdit={true}
                     fields={[
                         ...fields.filter(f => f.name !== 'company_id' && f.name !== 'department_id' && f.name !== 'position_id' && f.name !== 'qr_code_id' && 
-                                          f.name !== 'fecha_cumpleanos' && f.name !== 'imei_mac' && f.name !== 'firma_digital' && f.name !== 'dni'),
+                                          f.name !== 'fecha_cumpleanos' && f.name !== 'device_uid' && f.name !== 'firma_digital' && f.name !== 'dni'),
                         {
                             name: 'qr_code_id',
                             label: 'Código QR',
@@ -75,10 +75,11 @@ export default function UsersEdit() {
                             required: false,
                         },
                         {
-                            name: 'imei_mac',
-                            label: 'IMEI/MAC',
+                            name: 'device_uid',
+                            label: 'ID único del dispositivo',
                             type: 'text',
                             required: false,
+                            readonly: true,
                         },
                         // {
                         //     name: 'firma_digital',
